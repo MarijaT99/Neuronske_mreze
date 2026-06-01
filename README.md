@@ -64,6 +64,49 @@ python scripts/prepare_splits.py \
 jupyter lab notebooks/01_eda.ipynb
 ```
 
+## Local development on Windows / OneDrive
+
+This repo lives under a **OneDrive-synced folder** whose absolute path contains a
+**non-ASCII character** (`Republički`). Two environment quirks follow from that and
+have bitten development before:
+
+1. **`cv2.imread` returns `None`** on the non-ASCII path. Worked around in
+   [`src/data/dataset.py`](src/data/dataset.py) by reading bytes with
+   `np.fromfile` + `cv2.imdecode`. Use that path when loading images.
+2. **Runtime read-backs of in-repo files can come back garbled** while OneDrive
+   syncs. The sanity scripts therefore write their reports to `$TEMP` by default
+   (override with `--report PATH` or `REPORT_PATH`); keep generated reports out of
+   the repo.
+3. **PowerShell's working directory intermittently resets to the repo's parent**
+   between commands, which breaks relative-path script invocations and relative
+   `--out-dir`/`--report` arguments.
+
+Recommended invocation — use the wrapper, which pins the CWD to the repo root and
+disables bytecode files no matter where you launched it:
+
+```powershell
+.\run.ps1 scripts\sanity_check.py
+.\run.ps1 scripts\prepare_splits.py --data-root "data\raw\plantvillage dataset\color" --out-dir data\splits --seed 42
+```
+
+If you run Python directly instead, do both of these first:
+
+```powershell
+Set-Location "C:\...\Master\plant-disease-hierarchical"   # always start at the repo root
+$env:PYTHONDONTWRITEBYTECODE = 1                           # no __pycache__ in the synced tree
+```
+
+New scripts under `scripts/` can stay CWD-independent by importing the bootstrap
+helper as their first line (it puts the repo root on `sys.path`, pins the CWD,
+and sets the env var above):
+
+```python
+import _bootstrap  # noqa: F401
+```
+
+`pytest` is covered automatically by the repo-root [`conftest.py`](conftest.py),
+which applies the same path/CWD guard during collection.
+
 ## Reproducibility
 
 - Global seeds for `torch`, `numpy`, `random`; `torch.backends.cudnn.deterministic = True`.
