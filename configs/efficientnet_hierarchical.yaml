@@ -1,0 +1,38 @@
+# Hierarchical EfficientNet-B0 variant.
+
+extends: _base.yaml
+
+experiment:
+  name: efficientnet_hierarchical
+
+task:
+  type: hierarchical
+
+species_model:
+  type: efficientnet_b0
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
+
+disease_model:
+  type: efficientnet_b0
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
+
+data:
+  batch_size: 64             # EfficientNet-B0 is lighter than ResNet-50
+
+training:
+  epochs: 25
+  lr: 1.0e-4
+  optimizer: adamw
+  scheduler: cosine
+
+imbalance:
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce
+  class_weight_scheme: inverse

@@ -1,0 +1,38 @@
+# Shared defaults. Experiment configs override keys as needed.
+# Loaded first, then deep-merged with the experiment config (see utils/config).
+
+seed: 42
+
+data:
+  # Paths are resolved relative to the repo root by the train scripts.
+  # On Kaggle, override data_root to the dataset mount path.
+  data_root: "data/raw/plantvillage dataset/color"
+  splits_dir: "data/splits"
+  img_size: 224
+  batch_size: 32
+  num_workers: 4
+  aug_strength: heavy        # light | medium | heavy
+
+imbalance:
+  # How to handle class imbalance. Exactly one of these strategies is "primary";
+  # they can be compared across experiments.
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce        # ce | weighted_ce | focal
+    # for focal: gamma: 2.0, use_weights: true
+  class_weight_scheme: inverse   # inverse | inverse_sqrt | effective
+
+training:
+  epochs: 30
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  optimizer: adamw           # adamw | adam | sgd
+  scheduler: cosine          # cosine | plateau | none
+  early_stopping_patience: 7
+  grad_clip: 5.0
+  amp: true
+  monitor: macro_f1          # checkpoint / early-stop metric (higher is better)
+
+experiment:
+  name: _base
+  out_dir: experiments        # per-experiment subfolder created from name

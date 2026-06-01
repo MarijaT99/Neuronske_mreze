@@ -1,0 +1,40 @@
+# Hierarchical ResNet-50: one species head (14 classes) + per-species disease
+# heads (only the 9 non-trivial species get a real head; 5 single-class species
+# route to disease id 0). Same backbone recipe reused for every head.
+
+extends: _base.yaml
+
+experiment:
+  name: resnet50_hierarchical
+
+task:
+  type: hierarchical
+
+# Species (L1) classifier.
+species_model:
+  type: resnet50
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
+
+# Per-species disease (L2) classifier — same arch, num_classes set per species
+# at train time from label_maps.
+disease_model:
+  type: resnet50
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
+
+training:
+  epochs: 25
+  lr: 1.0e-4
+  optimizer: adamw
+  scheduler: cosine
+
+imbalance:
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce
+  class_weight_scheme: inverse

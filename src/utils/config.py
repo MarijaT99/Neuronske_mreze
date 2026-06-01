@@ -59,15 +59,44 @@ def _deep_copy(obj: Any) -> Any:
     return obj
 
 
-def load_config(path: str | Path) -> Config:
-    """Load a YAML config file into a :class:`Config`."""
-    path = Path(path)
+def _deep_merge(base: dict, override: dict) -> dict:
+    """Recursively merge ``override`` into ``base`` (override wins on leaves)."""
+    out = dict(base)
+    for key, val in override.items():
+        if key in out and isinstance(out[key], dict) and isinstance(val, dict):
+            out[key] = _deep_merge(out[key], val)
+        else:
+            out[key] = val
+    return out
+
+
+def _load_raw(path: Path) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Config not found: {path}")
     with path.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     if not isinstance(data, dict):
         raise ValueError(f"Config root must be a mapping, got {type(data).__name__}: {path}")
+    return data
+
+
+def load_config(path: str | Path) -> Config:
+    """Load a YAML config, honouring an optional ``extends:`` base file.
+
+    A config may declare ``extends: <relative-path>`` (resolved relative to the
+    config's own directory). The base is loaded first (recursively) and the
+    current file is deep-merged on top, so experiment configs only specify
+    overrides. The ``extends`` key is removed from the final config.
+    """
+    path = Path(path)
+    data = _load_raw(path)
+
+    base_ref = data.pop("extends", None)
+    if base_ref is not None:
+        base_path = (path.parent / base_ref).resolve()
+        base_data = load_config(base_path).to_dict()
+        data = _deep_merge(base_data, data)
+
     return Config(data)
 
 

@@ -1,0 +1,27 @@
+# Flat 38-class baseline — simple CNN from scratch.
+# The "from scratch" reference point.
+
+extends: _base.yaml
+
+experiment:
+  name: baseline_cnn_flat
+
+task:
+  type: flat                 # flat 38-class classification
+  num_classes: 38
+
+model:
+  type: baseline_cnn
+  dropout: 0.5
+
+training:
+  epochs: 40
+  lr: 1.0e-3                 # higher LR for from-scratch training
+  optimizer: adamw
+  scheduler: cosine
+
+imbalance:
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce
+  class_weight_scheme: inverse
