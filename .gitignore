@@ -32,11 +32,13 @@ data/raw/*
 *.ckpt
 *.onnx
 
-# Experiment outputs (keep folder + metadata only)
+# Experiment outputs (keep folder + small metadata only; .pth stay ignored above)
 experiments/*
 !experiments/.gitkeep
+!experiments/**/
 !experiments/**/config.yaml
-!experiments/**/metrics.json
+!experiments/**/*metrics.json
+!experiments/**/history.json
 
 # Experiment trackers
 wandb/
