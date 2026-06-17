@@ -25,9 +25,17 @@ def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
 
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
-        if deterministic:
+        # Deterministic cuDNN guarantees bit-reproducible convolutions but forces
+        # slow algorithms (ResNet-50 is ~5-10x slower on a T4). Set the env var
+        # PDH_CUDNN_BENCHMARK=1 to trade that exact determinism for cuDNN's fast
+        # autotuned kernels — seeds still fix weights, data order and augmentation,
+        # so runs stay reproducible up to minor conv-algorithm numerical noise.
+        if deterministic and not os.environ.get("PDH_CUDNN_BENCHMARK"):
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
+        else:
+            torch.backends.cudnn.deterministic = False
+            torch.backends.cudnn.benchmark = True
     except ImportError:
         # torch not present (e.g. local split tooling) — numpy/random still seeded.
         pass
