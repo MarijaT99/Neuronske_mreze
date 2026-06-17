@@ -15,6 +15,8 @@ model-agnostic.
 
 from __future__ import annotations
 
+import os
+
 import torch
 import torch.nn as nn
 
@@ -27,6 +29,33 @@ SUPPORTED = {
 def _set_requires_grad(module: nn.Module, flag: bool) -> None:
     for p in module.parameters():
         p.requires_grad = flag
+
+
+def _local_pretrained_file(timm_name: str) -> str | None:
+    """Return a local pretrained-weights file for ``timm_name`` if available.
+
+    Set ``PDH_PRETRAINED_DIR`` to a folder holding the timm safetensors when the
+    runtime has no internet (e.g. Kaggle): we then load the ImageNet weights from
+    disk instead of downloading from HuggingFace. Files are matched by the model's
+    default hub tag (``resnet50.a1_in1k.safetensors``), then a couple of fallbacks.
+    """
+    d = os.environ.get("PDH_PRETRAINED_DIR")
+    if not d or not os.path.isdir(d):
+        return None
+    import timm
+
+    try:
+        cfg = timm.get_pretrained_cfg(timm_name, allow_unregistered=False)
+        tag = (getattr(cfg, "hf_hub_id", "") or "").split("/")[-1]
+    except Exception:
+        tag = ""
+    for fname in (f"{tag}.safetensors", f"{timm_name}.safetensors", "model.safetensors"):
+        if fname == ".safetensors":
+            continue
+        p = os.path.join(d, fname)
+        if os.path.isfile(p):
+            return p
+    return None
 
 
 class TransferModel(nn.Module):
@@ -69,12 +98,17 @@ class TransferModel(nn.Module):
 
         self.arch = arch
         self.mode = mode
-        self.backbone = timm.create_model(
-            SUPPORTED[arch],
+        create_kwargs = dict(
             pretrained=pretrained,
             num_classes=num_classes,
             drop_rate=drop_rate,
         )
+        if pretrained:
+            local = _local_pretrained_file(SUPPORTED[arch])
+            if local is not None:
+                # Load ImageNet weights from disk (offline); timm adapts the head.
+                create_kwargs["pretrained_cfg_overlay"] = dict(file=local)
+        self.backbone = timm.create_model(SUPPORTED[arch], **create_kwargs)
         self._configure_trainable(mode, unfreeze_blocks)
 
     # ------------------------------------------------------------------ #
