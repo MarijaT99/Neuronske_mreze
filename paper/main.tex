@@ -33,16 +33,16 @@ Predmet: Neuronske mreže}}
 Rana i automatska detekcija biljnih bolesti sa fotografija listova može značajno
 ubrzati dijagnostiku u poljoprivredi. U ovom radu poredimo \emph{hijerarhijski}
 pristup klasifikaciji --- u kome prvi model prepoznaje vrstu biljke, a zatim
-poseban model po vrsti prepoznaje bolest --- sa \emph{ravnim} pristupom koji
+poseban model po vrsti prepoznaje bolest --- sa \emph{flat} pristupom koji
 direktno klasifikuje svih 38 kombinacija (vrsta, bolest). Eksperimenti su
 izvedeni na skupu PlantVillage (54.305 slika, 14 vrsta, 38 klasa), koji je
 neuravnotežen na oba nivoa hijerarhije. Pošto skup nije balansiran, kao primarnu
 metriku koristimo \emph{makro F1}, a tačnost (accuracy) prijavljujemo samo kao
-sporednu. Najbolji ravni model (ResNet-50) postiže makro F1 od $0{,}9843$ na test
+sporednu. Najbolji flat model (ResNet-50) postiže makro F1 od $0{,}9843$ na test
 skupu, dok hijerarhijski pristup postiže $0{,}9741$ --- dakle hijerarhija
 \emph{ne donosi poboljšanje}, već blago zaostaje. Analizom propagacije greške
 pokazujemo da $21{,}1\%$ grešaka hijerarhije potiče od pogrešno prepoznate vrste,
-što je nepopravljiv izvor greške koji ravni model nema. Konačno, kroz Grad-CAM
+što je nepopravljiv izvor greške koji flat model nema. Konačno, kroz Grad-CAM
 vizualizaciju i diskusiju o pristrasnosti na pozadinu (\emph{background bias})
 razmatramo zašto visoke vrednosti metrika na PlantVillage skupu ne garantuju
 upotrebljivost u realnim uslovima.
@@ -66,10 +66,10 @@ deli se na dva jednostavnija zadatka --- prepoznavanje vrste biljke (nivo 1) i,
 unutar prepoznate vrste, prepoznavanje tipa bolesti (nivo 2). Pretpostavka je da
 ovakva dekompozicija može poboljšati interpretabilnost i, eventualno,
 performanse. Da bismo proverili tu pretpostavku, kao referentnu tačku
-implementiramo \emph{ravni} klasifikator sa 38 klasa, te eksplicitno poredimo dva
+implementiramo \emph{flat} klasifikator sa 38 klasa, te eksplicitno poredimo dva
 pristupa.
 
-Glavni doprinosi rada su: (1) implementacija i poređenje ravnog i hijerarhijskog
+Glavni doprinosi rada su: (1) implementacija i poređenje flat i hijerarhijskog
 pristupa pod istim uslovima; (2) evaluacija prilagođena neuravnoteženom skupu, sa
 makro F1 kao primarnom metrikom; (3) kvantifikacija \emph{propagacije greške} u
 hijerarhiji; i (4) kritička diskusija o pristrasnosti na pozadinu i o tome zašto
@@ -119,7 +119,7 @@ validacionim i test skupom \emph{ne} primenjuje se augmentacija.
 \subsection{Modeli}
 Implementirana su tri tipa modela:
 \begin{itemize}
-  \item \textbf{Bazni CNN} treniran od nule (4 konvolucijska bloka sa batch
+  \item \textbf{Baseline CNN} treniran od nule (4 konvolucijska bloka sa batch
   normalizacijom, globalnim pooling-om i dropout-om, $\approx1{,}3$M parametara)
   --- služi kao referentna tačka ``od nule''.
   \item \textbf{ResNet-50} sa ImageNet pretreniranim težinama (transfer
@@ -154,8 +154,8 @@ vrste.
 
 \section{Rezultati}
 
-\subsection{Ravni modeli}
-Na validacionom skupu, bazni CNN (od nule) postiže makro F1 od $0{,}9826$, a
+\subsection{Flat modeli}
+Na validacionom skupu, baseline CNN (od nule) postiže makro F1 od $0{,}9826$, a
 ResNet-50 (transfer) $0{,}9882$. Pretreniranje na ImageNet skupu donosi samo
 $\approx0{,}5$ procentnih poena, što ukazuje da je zadatak na ovom skupu gotovo
 zasićen i da ga čak i jednostavna mreža od nule rešava skoro savršeno.
@@ -204,20 +204,20 @@ vrsta do najtežih --- krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
   \label{fig:heads}
 \end{figure}
 
-\subsection{Ravni pristup naspram hijerarhije}
+\subsection{Flat pristup naspram hijerarhije}
 Tabela~\ref{tab:main} i Slika~\ref{fig:flatvshier} prikazuju glavni rezultat na
-\emph{test} skupu. Ravni ResNet-50 postiže makro F1 od $0{,}9843$, dok
-hijerarhija postiže $0{,}9741$ --- razlika je $-0{,}0102$ u korist ravnog
+\emph{test} skupu. Flat ResNet-50 postiže makro F1 od $0{,}9843$, dok
+hijerarhija postiže $0{,}9741$ --- razlika je $-0{,}0102$ u korist flat
 pristupa. Isti trend važi i za ostale metrike.
 
 \begin{table}[t]
-  \caption{Ravni naspram hijerarhijskog pristupa (test skup). Makro F1 je
+  \caption{Flat naspram hijerarhijskog pristupa (test skup). Makro F1 je
   primarna metrika; tačnost je sporedna.}
   \label{tab:main}
   \centering
   \begin{tabular}{lccc}
     \toprule
-    Metrika & Ravni & Hijerarhija & $\Delta$ \\
+    Metrika & Flat & Hijerarhija & $\Delta$ \\
     \midrule
     Makro F1            & \textbf{0{,}9843} & 0{,}9741 & $-0{,}0102$ \\
     Ponderisani F1      & 0{,}9868 & 0{,}9821 & $-0{,}0047$ \\
@@ -230,7 +230,7 @@ pristupa. Isti trend važi i za ostale metrike.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{flat_vs_hierarchical.png}
-  \caption{Ravni naspram hijerarhijskog pristupa na test skupu.}
+  \caption{Flat naspram hijerarhijskog pristupa na test skupu.}
   \label{fig:flatvshier}
 \end{figure}
 
@@ -239,7 +239,7 @@ Na test skupu, model za vrstu je tačan u $99{,}62\%$ slučajeva, a klasifikacij
 bolesti uz tačnu vrstu postiže makro F1 od $0{,}9815$. Od ukupno $147$ end-to-end
 grešaka hijerarhije, $31$ potiče od pogrešne vrste (nepopravljivo), a $116$ od
 pogrešne bolesti pri tačnoj vrsti. Dakle, $21{,}1\%$ svih grešaka uzrokovano je
-prvim nivoom (Slika~\ref{fig:errprop}). Ravni model nema ovaj kaskadni izvor
+prvim nivoom (Slika~\ref{fig:errprop}). Flat model nema ovaj kaskadni izvor
 greške, što objašnjava njegovu blagu prednost.
 
 \begin{figure}[t]
@@ -250,7 +250,7 @@ greške, što objašnjava njegovu blagu prednost.
 \end{figure}
 
 \subsection{Analiza grešaka}
-Matrica konfuzije ravnog modela (Slika~\ref{fig:cm}) pokazuje izraženu dijagonalu
+Matrica konfuzije flat modela (Slika~\ref{fig:cm}) pokazuje izraženu dijagonalu
 uz greške koncentrisane među bolestima paradajza i kukuruza. Najslabije klase po
 F1 su Tomato Early blight ($0{,}89$), Corn Cercospora/Gray leaf spot ($0{,}91$) i
 Tomato Late blight ($0{,}94$). Najčešća zabuna je između dve gljivične bolesti
@@ -261,7 +261,7 @@ biljkama.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{confusion_flat.png}
-  \caption{Matrica konfuzije ravnog ResNet-50 modela (test, normalizovano po
+  \caption{Matrica konfuzije flat ResNet-50 modela (test, normalizovano po
   redu = recall po klasi).}
   \label{fig:cm}
 \end{figure}
@@ -270,10 +270,10 @@ biljkama.
 
 \subsection{Zašto hijerarhija ne pomaže}
 Iako intuitivno deluje da dekompozicija problema treba da pomogne, na ovom skupu
-hijerarhija blago zaostaje. Razlog je dvojak: (1) ravni model već postiže
+hijerarhija blago zaostaje. Razlog je dvojak: (1) flat model već postiže
 $\approx0{,}98$, pa je prostor za poboljšanje mali; i (2) hijerarhija uvodi
 dodatnu tačku otkaza --- greške na nivou vrste su nepopravljive i čine petinu svih
-grešaka. Ravni model zajednički modeluje (vrsta, bolest) i izbegava kaskadu.
+grešaka. Flat model zajednički modeluje (vrsta, bolest) i izbegava kaskadu.
 Ovo je validan rezultat: hijerarhijski pristup nije uvek opravdan.
 
 \subsection{Visoke metrike i pristrasnost na pozadinu}
@@ -290,7 +290,7 @@ rizik ostaje slaba generalizacija na terenske slike sa drugačijom pozadinom.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{gradcam.png}
-  \caption{Grad-CAM mape ravnog modela: gde model ``gleda''. Toplota je pretežno
+  \caption{Grad-CAM mape flat modela: gde model ``gleda''. Toplota je pretežno
   na listu, ali difuzna.}
   \label{fig:gradcam}
 \end{figure}
@@ -310,8 +310,8 @@ najteže vrste --- krompir i kukuruz). To je kompromis između performanse i
 interpretabilnosti.
 
 \section{Zaključak}
-Uporedili smo ravni i hijerarhijski pristup klasifikaciji biljnih bolesti na
-PlantVillage skupu, uz evaluaciju prilagođenu neuravnoteženim podacima. Ravni
+Uporedili smo flat i hijerarhijski pristup klasifikaciji biljnih bolesti na
+PlantVillage skupu, uz evaluaciju prilagođenu neuravnoteženim podacima. Flat
 ResNet-50 postiže makro F1 od $0{,}9843$ naspram $0{,}9741$ za hijerarhiju, pa
 hijerarhija \emph{ne donosi poboljšanje}; analiza propagacije greške pokazuje da
 petina grešaka hijerarhije potiče od nivoa vrste. Najvažniji zaključak nije sama
