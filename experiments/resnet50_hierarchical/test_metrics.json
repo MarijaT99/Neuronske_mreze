@@ -1,0 +1,21 @@
+{
+  "hierarchical": {
+    "end_to_end_macro_f1": 0.9740681074359758,
+    "end_to_end_weighted_f1": 0.9820633120763492,
+    "end_to_end_balanced_acc": 0.9813328700220223,
+    "end_to_end_accuracy": 0.9819543334151731,
+    "species_macro_f1": 0.9960212216579762,
+    "disease_given_correct_species_macro_f1": 0.9815404683314046,
+    "species_correct_frac": 0.9961944512644243,
+    "end_to_end_correct_frac": 0.9819543334151731,
+    "errors_from_species": 31,
+    "errors_from_disease_only": 116,
+    "share_of_errors_due_to_species": 0.2108843537414966
+  },
+  "flat": {
+    "macro_f1": 0.984255470635476,
+    "weighted_f1": 0.9867877416109809,
+    "balanced_accuracy": 0.9859107272697374,
+    "accuracy": 0.9867419592438006
+  }
+}

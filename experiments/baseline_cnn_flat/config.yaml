@@ -1,0 +1,32 @@
+seed: 42
+data:
+  data_root: data/raw/plantvillage dataset/color
+  splits_dir: data/splits
+  img_size: 224
+  batch_size: 32
+  num_workers: 4
+  aug_strength: heavy
+imbalance:
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce
+  class_weight_scheme: inverse
+training:
+  epochs: 40
+  lr: 0.001
+  weight_decay: 0.0001
+  optimizer: adamw
+  scheduler: cosine
+  early_stopping_patience: 7
+  grad_clip: 5.0
+  amp: true
+  monitor: macro_f1
+experiment:
+  name: baseline_cnn_flat
+  out_dir: experiments
+task:
+  type: flat
+  num_classes: 38
+model:
+  type: baseline_cnn
+  dropout: 0.5

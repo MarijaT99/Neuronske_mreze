@@ -1,0 +1,40 @@
+seed: 42
+data:
+  data_root: data/raw/plantvillage dataset/color
+  splits_dir: data/splits
+  img_size: 224
+  batch_size: 128
+  num_workers: 4
+  aug_strength: heavy
+imbalance:
+  use_weighted_sampler: false
+  loss:
+    type: weighted_ce
+  class_weight_scheme: inverse
+training:
+  epochs: 20
+  lr: 0.0001
+  weight_decay: 0.0001
+  optimizer: adamw
+  scheduler: cosine
+  early_stopping_patience: 7
+  grad_clip: 5.0
+  amp: true
+  monitor: macro_f1
+experiment:
+  name: resnet50_hierarchical
+  out_dir: experiments
+task:
+  type: hierarchical
+species_model:
+  type: resnet50
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
+disease_model:
+  type: resnet50
+  pretrained: true
+  mode: finetune
+  unfreeze_blocks: 2
+  drop_rate: 0.2
