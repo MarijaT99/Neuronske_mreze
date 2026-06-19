@@ -125,3 +125,9 @@ pipeline passes its sanity check.
 PlantVillage images have near-uniform per-class backgrounds; models can learn the
 background instead of the disease. Addressed via aggressive augmentation (color jitter,
 random erasing, perspective), Grad-CAM in error analysis, and explicit discussion in the paper.
+
+## Paper
+
+The final paper is `Report.pdf` (repo root). Its LaTeX source is in `paper/main.tex`
+(IEEE conference template, in Serbian) with the figures under `paper/figures/`.
+To rebuild it, compile `paper/main.tex` with pdfLaTeX (two passes).
