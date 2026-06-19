@@ -1,12 +1,12 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 
-% --- Kodiranje i jezik ---
+% - Kodiranje i jezik -
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[serbian]{babel}   % ako pravi gresku na Overleaf-u, zameniti sa: \usepackage[english]{babel}
 
-% --- Paketi ---
+% - Paketi -
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -27,7 +27,7 @@ korišćenjem dubokih neuronskih mreža}
 
 \author{\IEEEauthorblockN{Marija Tadić, E9 12/2024}
 \IEEEauthorblockA{Fakultet tehničkih nauka, Univerzitet u Novom Sadu\\
-Master studije --- Mašinsko učenje i veštačka inteligencija\\
+Master studije - Mašinsko učenje i veštačka inteligencija\\
 Predmet: Neuronske mreže}}
 
 \maketitle
@@ -35,14 +35,14 @@ Predmet: Neuronske mreže}}
 \begin{abstract}
 Rana i automatska detekcija biljnih bolesti sa fotografija listova može značajno
 ubrzati dijagnostiku u poljoprivredi. U ovom radu poredimo \emph{hijerarhijski}
-pristup klasifikaciji --- u kome prvi model prepoznaje vrstu biljke, a zatim
-poseban model po vrsti prepoznaje bolest --- sa \emph{flat} pristupom koji
+pristup klasifikaciji - u kome prvi model prepoznaje vrstu biljke, a zatim
+poseban model po vrsti prepoznaje bolest - sa \emph{flat} pristupom koji
 direktno klasifikuje svih 38 kombinacija (vrsta, bolest). Eksperimenti su
 izvedeni na skupu PlantVillage (54.305 slika, 14 vrsta, 38 klasa), koji je
 neuravnotežen na oba nivoa hijerarhije. Pošto skup nije balansiran, kao primarnu
 metriku koristimo \emph{makro F1}, a tačnost (accuracy) prijavljujemo samo kao
 sporednu. Najbolji flat model (ResNet-50) postiže makro F1 od $0{,}9843$ na test
-skupu, dok hijerarhijski pristup postiže $0{,}9741$ --- dakle hijerarhija
+skupu, dok hijerarhijski pristup postiže $0{,}9741$ - dakle hijerarhija
 \emph{ne donosi poboljšanje}, već blago zaostaje. Analizom propagacije greške
 pokazujemo da $21{,}1\%$ grešaka hijerarhije potiče od pogrešno prepoznate vrste,
 što je nepopravljiv izvor greške koji flat model nema. Konačno, kroz Grad-CAM
@@ -65,7 +65,7 @@ dijagnostiku, uključujući i terensko skeniranje na uređajima ograničenih res
 Cilj ovog rada je razvoj i evaluacija sistema za automatsku klasifikaciju biljnih
 bolesti sa fotografija listova primenom dubokih konvolucijskih neuronskih mreža.
 Posebno ispitujemo \emph{hijerarhijski} pristup: kompleksan problem sa 38 klasa
-deli se na dva jednostavnija zadatka --- prepoznavanje vrste biljke (nivo 1) i,
+deli se na dva jednostavnija zadatka - prepoznavanje vrste biljke (nivo 1) i,
 unutar prepoznate vrste, prepoznavanje tipa bolesti (nivo 2). Pretpostavka je da
 ovakva dekompozicija može poboljšati interpretabilnost i, eventualno,
 performanse. Da bismo proverili tu pretpostavku, kao referentnu tačku
@@ -114,7 +114,7 @@ Sve slike su skalirane na $224\times224$ piksela i normalizovane statistikom
 ImageNet skupa. Nad trening skupom primenjena je \emph{agresivna} augmentacija
 (slučajno isecanje i skaliranje, horizontalno i vertikalno preslikavanje,
 rotacije, afine i perspektivne transformacije, promene boje/osvetljenja, te
-slučajno brisanje regiona --- \emph{random erasing}). Agresivna augmentacija je
+slučajno brisanje regiona - \emph{random erasing}). Agresivna augmentacija je
 namerna mera protiv pristrasnosti na pozadinu: cilj je primorati model da se
 oslanja na teksturu lista i lezije, a ne na uniformnu pozadinu. Nad
 validacionim i test skupom \emph{ne} primenjuje se augmentacija.
@@ -124,7 +124,7 @@ Implementirana su tri tipa modela:
 \begin{itemize}
   \item \textbf{Baseline CNN} treniran od nule (4 konvolucijska bloka sa batch
   normalizacijom, globalnim pooling-om i dropout-om, $\approx1{,}3$M parametara)
-  --- služi kao referentna tačka ``od nule''.
+  - služi kao referentna tačka ``od nule''.
   \item \textbf{ResNet-50} sa ImageNet pretreniranim težinama (transfer
   learning), uz fino podešavanje poslednje dve etape i klasifikacionog sloja.
   \item \textbf{EfficientNet-B0} (podržan u implementaciji kao lakša
@@ -132,7 +132,7 @@ Implementirana su tri tipa modela:
   transfer model.
 \end{itemize}
 Hijerarhijski sistem se sastoji od jednog modela za vrstu (14 klasa) i rečnika
-modela za bolest --- po jednog za svaku od 9 netrivijalnih vrsta; pet vrsta sa
+modela za bolest - po jednog za svaku od 9 netrivijalnih vrsta; pet vrsta sa
 jednom klasom rutira se direktno. U fazi predikcije, izlaz modela za vrstu bira
 odgovarajući model za bolest.
 
@@ -152,7 +152,7 @@ prijavljuje se samo kao sporedna. Primarne metrike su: \textbf{makro F1} (tretir
 sve klase jednako), \emph{ponderisani} F1, \emph{balansirana tačnost}, te
 precision/recall po klasi i matrica konfuzije. Za hijerarhiju se računaju
 \emph{end-to-end} metrike na finalnoj (vrsta, bolest) predikciji, kao i
-\emph{propagacija greške} --- udeo grešaka koje potiču od pogrešno prepoznate
+\emph{propagacija greške} - udeo grešaka koje potiču od pogrešno prepoznate
 vrste.
 
 \section{Rezultati}
@@ -172,11 +172,11 @@ Slika~\ref{fig:curves} prikazuje krive učenja.
 \end{figure}
 
 \subsection{Hijerarhija: nivoi}
-Model za vrstu (nivo 1) postiže makro F1 od $0{,}9974$ na validaciji ---
+Model za vrstu (nivo 1) postiže makro F1 od $0{,}9974$ na validaciji -
 prepoznavanje vrste je gotovo savršeno, što sugeriše mali doprinos propagacije
 greške sa prvog nivoa. Klasifikatori bolesti (nivo 2) variraju po vrsti
 (Tabela~\ref{tab:disease}, Slika~\ref{fig:heads}): od savršenih kod binarnih
-vrsta do najtežih --- krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
+vrsta do najtežih - krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
 
 \begin{table}[!htbp]
   \caption{Makro F1 klasifikatora bolesti po vrsti (validacija).}
@@ -210,7 +210,7 @@ vrsta do najtežih --- krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
 \subsection{Flat pristup naspram hijerarhije}
 Tabela~\ref{tab:main} i Slika~\ref{fig:flatvshier} prikazuju glavni rezultat na
 \emph{test} skupu. Flat ResNet-50 postiže makro F1 od $0{,}9843$, dok
-hijerarhija postiže $0{,}9741$ --- razlika je $-0{,}0102$ u korist flat
+hijerarhija postiže $0{,}9741$ - razlika je $-0{,}0102$ u korist flat
 pristupa. Isti trend važi i za ostale metrike.
 
 \begin{table}[!htbp]
@@ -257,8 +257,8 @@ Matrica konfuzije flat modela (Slika~\ref{fig:cm}) pokazuje izraženu dijagonalu
 uz greške koncentrisane među bolestima paradajza i kukuruza. Najslabije klase po
 F1 su Tomato Early blight ($0{,}89$), Corn Cercospora/Gray leaf spot ($0{,}91$) i
 Tomato Late blight ($0{,}94$). Najčešća zabuna je između dve gljivične bolesti
-kukuruza; uočena je i \emph{međuvrsna} zabuna --- Potato Late blight predviđen kao
-Tomato Late blight --- što odgovara činjenici da je reč o istoj bolesti na srodnim
+kukuruza; uočena je i \emph{međuvrsna} zabuna - Potato Late blight predviđen kao
+Tomato Late blight - što odgovara činjenici da je reč o istoj bolesti na srodnim
 biljkama.
 
 \begin{figure}[!htbp]
@@ -275,7 +275,7 @@ biljkama.
 Iako intuitivno deluje da dekompozicija problema treba da pomogne, na ovom skupu
 hijerarhija blago zaostaje. Razlog je dvojak: (1) flat model već postiže
 $\approx0{,}98$, pa je prostor za poboljšanje mali; i (2) hijerarhija uvodi
-dodatnu tačku otkaza --- greške na nivou vrste su nepopravljive i čine petinu svih
+dodatnu tačku otkaza - greške na nivou vrste su nepopravljive i čine petinu svih
 grešaka. Flat model zajednički modeluje (vrsta, bolest) i izbegava kaskadu.
 Ovo je validan rezultat: hijerarhijski pristup nije uvek opravdan.
 
@@ -286,7 +286,7 @@ ne treba tumačiti kao meru upotrebljivosti u praksi. PlantVillage slike su
 snimane u kontrolisanim uslovima, sa gotovo uniformnom pozadinom po klasi, pa
 model može naučiti pozadinu kao prečicu~\cite{noyan2022}. Grad-CAM analiza
 (Slika~\ref{fig:gradcam}) pokazuje da model uglavnom obraća pažnju na tkivo
-lista, ali difuzno --- ne precizno na leziju. Pošto list popunjava gotovo ceo
+lista, ali difuzno - ne precizno na leziju. Pošto list popunjava gotovo ceo
 kadar, pristrasnost na pozadinu se na ovim slikama teško direktno uočava; glavni
 rizik ostaje slaba generalizacija na terenske slike sa drugačijom pozadinom.
 
@@ -309,7 +309,7 @@ nezavisnom terenskom skupu ostaje za budući rad.
 Iako ne donosi bolju tačnost, hijerarhija nudi \emph{interpretabilnost i
 modularnost}: jasno se vidi da li greška nastaje na nivou vrste ili bolesti, a
 pojedinačni klasifikatori se mogu nezavisno unapređivati (npr. ciljano za
-najteže vrste --- krompir i kukuruz). To je kompromis između performanse i
+najteže vrste - krompir i kukuruz). To je kompromis između performanse i
 interpretabilnosti.
 
 \section{Zaključak}
@@ -318,7 +318,7 @@ PlantVillage skupu, uz evaluaciju prilagođenu neuravnoteženim podacima. Flat
 ResNet-50 postiže makro F1 od $0{,}9843$ naspram $0{,}9741$ za hijerarhiju, pa
 hijerarhija \emph{ne donosi poboljšanje}; analiza propagacije greške pokazuje da
 petina grešaka hijerarhije potiče od nivoa vrste. Najvažniji zaključak nije sama
-visoka tačnost --- koja je očekivana i delom posledica svojstava skupa --- već
+visoka tačnost - koja je očekivana i delom posledica svojstava skupa - već
 spoznaja da takve vrednosti precenjuju realnu upotrebljivost zbog pristrasnosti na
 pozadinu. Budući rad obuhvata validaciju na terenskim slikama, grupisanje
 približnih duplikata pri podeli, te ciljano unapređenje najtežih klasa.
