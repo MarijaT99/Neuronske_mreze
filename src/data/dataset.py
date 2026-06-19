@@ -35,8 +35,8 @@ def _read_rgb(path: Path) -> np.ndarray:
 
     Uses ``np.fromfile`` + ``cv2.imdecode`` rather than ``cv2.imread`` because
     OpenCV's ``imread`` cannot open paths containing non-ASCII characters on
-    Windows (this repo's path contains "Republički"). ``np.fromfile`` opens via
-    Python's Unicode-aware IO, so the byte buffer is decoded path-agnostically.
+    Windows. ``np.fromfile`` opens via Python's Unicode-aware IO, so the byte
+    buffer is decoded path-agnostically.
     """
     import cv2
 

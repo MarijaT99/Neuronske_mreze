@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "plant-disease-hierarchical"
 version = "0.1.0"
-description = "Hierarchical classification of plant leaf diseases (PlantVillage)"
+description = "Hijerarhijska klasifikacija biljnih bolesti korišćenjem dubokih neuronskih mreža"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Marija Tadic", email = "svetlanatadic05@gmail.com" }]
+authors = [{ name = "Marija Tadić" }]
 
 [tool.setuptools.packages.find]
 where = ["."]
