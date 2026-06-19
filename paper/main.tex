@@ -164,7 +164,7 @@ $\approx0{,}5$ procentnih poena, što ukazuje da je zadatak na ovom skupu gotovo
 zasićen i da ga čak i jednostavna mreža od nule rešava skoro savršeno.
 Slika~\ref{fig:curves} prikazuje krive učenja.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{training_curves.png}
   \caption{Validacioni makro F1 po epohama (levo) i gubitak za ResNet-50 (desno).}
@@ -178,7 +178,7 @@ greške sa prvog nivoa. Klasifikatori bolesti (nivo 2) variraju po vrsti
 (Tabela~\ref{tab:disease}, Slika~\ref{fig:heads}): od savršenih kod binarnih
 vrsta do najtežih --- krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
 
-\begin{table}[t]
+\begin{table}[!htbp]
   \caption{Makro F1 klasifikatora bolesti po vrsti (validacija).}
   \label{tab:disease}
   \centering
@@ -199,7 +199,7 @@ vrsta do najtežih --- krompir ($0{,}9047$) i kukuruz ($0{,}9467$).
   \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{disease_heads_macro_f1.png}
   \caption{Makro F1 klasifikatora bolesti po vrsti; crvenom su označene
@@ -213,7 +213,7 @@ Tabela~\ref{tab:main} i Slika~\ref{fig:flatvshier} prikazuju glavni rezultat na
 hijerarhija postiže $0{,}9741$ --- razlika je $-0{,}0102$ u korist flat
 pristupa. Isti trend važi i za ostale metrike.
 
-\begin{table}[t]
+\begin{table}[!htbp]
   \caption{Flat naspram hijerarhijskog pristupa (test skup). Makro F1 je
   primarna metrika; tačnost je sporedna.}
   \label{tab:main}
@@ -230,7 +230,7 @@ pristupa. Isti trend važi i za ostale metrike.
   \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{flat_vs_hierarchical.png}
   \caption{Flat naspram hijerarhijskog pristupa na test skupu.}
@@ -245,7 +245,7 @@ pogrešne bolesti pri tačnoj vrsti. Dakle, $21{,}1\%$ svih grešaka uzrokovano 
 prvim nivoom (Slika~\ref{fig:errprop}). Flat model nema ovaj kaskadni izvor
 greške, što objašnjava njegovu blagu prednost.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.85\columnwidth]{error_propagation.png}
   \caption{Izvori end-to-end grešaka hijerarhije.}
@@ -261,7 +261,7 @@ kukuruza; uočena je i \emph{međuvrsna} zabuna --- Potato Late blight predviđe
 Tomato Late blight --- što odgovara činjenici da je reč o istoj bolesti na srodnim
 biljkama.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{confusion_flat.png}
   \caption{Matrica konfuzije flat ResNet-50 modela (test, normalizovano po
@@ -290,7 +290,7 @@ lista, ali difuzno --- ne precizno na leziju. Pošto list popunjava gotovo ceo
 kadar, pristrasnost na pozadinu se na ovim slikama teško direktno uočava; glavni
 rizik ostaje slaba generalizacija na terenske slike sa drugačijom pozadinom.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=\columnwidth]{gradcam.png}
   \caption{Grad-CAM mape flat modela: gde model ``gleda''. Toplota je pretežno
