@@ -18,7 +18,7 @@ species_model:
   unfreeze_blocks: 2
   drop_rate: 0.2
 
-# Klasifikator bolesti po vrsti (L2) — ista arhitektura, num_classes se postavlja
+# Klasifikator bolesti po vrsti (L2) - ista arhitektura, num_classes se postavlja
 # po vrsti tokom treniranja iz label_maps.
 disease_model:
   type: resnet50
