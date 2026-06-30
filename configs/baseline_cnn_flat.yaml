@@ -1,4 +1,4 @@
-# Flat baseline sa 38 klasa — jednostavna CNN trenirana from scratch.
+# Flat baseline sa 38 klasa - jednostavna CNN trenirana from scratch.
 # Referentna tačka za "from scratch" pristup.
 
 extends: _base.yaml
