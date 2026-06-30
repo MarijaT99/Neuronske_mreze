@@ -3,7 +3,7 @@
 Dve svrhe:
 
 1. **Confusion matrice** (po nivou + finalna 38-class) da bi se videlo *koje* se
-   klase mešaju — daleko informativnije od jednog broja za accuracy na
+   klase mešaju - daleko informativnije od jednog broja za accuracy na
    neuravnoteženim podacima.
 2. **Grad-CAM** na pogrešno klasifikovanim primerima da bi se izložio poznati
    PlantVillage **background bias**: ako heatmap osvetli uniformnu pozadinu umesto
@@ -38,7 +38,7 @@ def plot_confusion_matrix(
     """Iscrtaj heatmap confusion matrice. Vraća matplotlib Figure.
 
     ``normalize`` deli svaki red njegovim support-om (normalizacija po tačnoj klasi)
-    tako da se dijagonala čita kao recall po klasi — pravi prikaz kod neuravnoteženosti.
+    tako da se dijagonala čita kao recall po klasi - pravi prikaz kod neuravnoteženosti.
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
