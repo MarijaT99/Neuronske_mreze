@@ -28,7 +28,7 @@ def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
         # Deterministički cuDNN garantuje bit-reproducibilne konvolucije, ali nameće
         # spore algoritme (ResNet-50 je ~5-10x sporiji na T4). Postavi env promenljivu
         # PDH_CUDNN_BENCHMARK=1 da tu strogu determinističnost zameniš za brze,
-        # autotuned cuDNN kernele — seed i dalje fiksira težine, redosled podataka i
+        # autotuned cuDNN kernele - seed i dalje fiksira težine, redosled podataka i
         # augmentation, pa runovi ostaju reproducibilni do minornog numeričkog šuma
         # konvolucionog algoritma.
         if deterministic and not os.environ.get("PDH_CUDNN_BENCHMARK"):
@@ -38,14 +38,14 @@ def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
             torch.backends.cudnn.deterministic = False
             torch.backends.cudnn.benchmark = True
     except ImportError:
-        # torch nije prisutan (npr. lokalni alati za split) — numpy/random su i dalje seed-ovani.
+        # torch nije prisutan (npr. lokalni alati za split) - numpy/random su i dalje seed-ovani.
         pass
 
     return seed
 
 
 def seed_worker(worker_id: int) -> None:
-    """DataLoader ``worker_init_fn`` — daje svakom worker-u zaseban, seed-ovan RNG.
+    """DataLoader ``worker_init_fn`` - daje svakom worker-u zaseban, seed-ovan RNG.
 
     Koristi zajedno sa seed-ovanim ``generator``-om prosleđenim ``DataLoader``-u za
     potpuno reproducibilno mešanje/augmentation kroz sve worker-e.
