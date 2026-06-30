@@ -1,10 +1,10 @@
-"""PlantVillageDataset — čita sačuvane split CSV fajlove.
+"""PlantVillageDataset - čita sačuvane split CSV fajlove.
 
 Dva režima:
 
-* ``mode="flat"`` — vraća ``(image, class_id)`` gde je ``class_id`` globalni
+* ``mode="flat"`` - vraća ``(image, class_id)`` gde je ``class_id`` globalni
   38-class (species, disease) label. Koristi ga flat baseline.
-* ``mode="hierarchical"`` — vraća ``(image, species_id, disease_id_in_species)``.
+* ``mode="hierarchical"`` - vraća ``(image, species_id, disease_id_in_species)``.
   ``disease_id_in_species`` je *po-species* indeks bolesti, što je upravo ono što
   predviđaju po-species disease head-ovi.
 
