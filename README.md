@@ -8,14 +8,14 @@ Hijerarhijska klasifikacija biljnih bolesti sa fotografija listova na skupu **Pl
 
 - **Nivo 1 (vrsta):** klasifikacija biljne vrste (14 klasa).
 - **Nivo 2 (bolest):** tip bolesti unutar prepoznate vrste (jedan *disease* klasifikator po vrsti).
-- Kao referenca trenira se i **flat** klasifikator sa svih 38 klasa — poređenje pokazuje da li
+- Kao referenca trenira se i **flat** klasifikator sa svih 38 klasa - poređenje pokazuje da li
   hijerarhija donosi poboljšanje (i odsustvo poboljšanja je validan rezultat).
 
 ## Evaluacija
 
 Skup je neuravnotežen na oba nivoa hijerarhije, pa accuracy nije primarna metrika. Korišćene metrike:
 
-- **macro F1** (tretira sve klase jednako) — primarna metrika,
+- **macro F1** (tretira sve klase jednako) - primarna metrika,
 - **weighted F1** (ponderisan po broju primera),
 - precision/recall po klasi + matrice konfuzije,
 - **balanced accuracy** kao accuracy-alternativa prilagođena disbalansu,
@@ -84,7 +84,7 @@ Za pokretanje na Kaggle platformi koristi se `kaggle/train_kaggle.ipynb`.
 ## Rezultati
 
 Na test skupu, flat ResNet-50 postiže **macro F1 = 0,9843**, dok hijerarhijski pristup postiže
-**0,9741** — flat pristup je blago bolji. Analiza propagacije greške pokazuje da oko petine grešaka
+**0,9741** - flat pristup je blago bolji. Analiza propagacije greške pokazuje da oko petine grešaka
 hijerarhije potiče od pogrešno prepoznate vrste. Detaljni rezultati, tabele i figure nalaze se u
 `results/`, a kompletna analiza u `Report.pdf`.
 
