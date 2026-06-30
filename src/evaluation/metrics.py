@@ -1,12 +1,12 @@
-"""Metrike klasifikacije — po dizajnu osetljive na neuravnoteženost.
+"""Metrike klasifikacije - po dizajnu osetljive na neuravnoteženost.
 
 Pravilo projekta (mentor): **accuracy nikada nije primarna metrika** jer je
 dataset neuravnotežen na oba nivoa hijerarhije. Primarne metrike su:
 
-* **macro F1**     — neponderisana srednja vrednost F1 po klasi (sve klase jednako);
-* **weighted F1**  — F1 ponderisan support-om (realističan prikaz);
-* **balanced accuracy** — alternativa nalik accuracy-ju (srednji recall po klasi);
-* **precision / recall / F1 po klasi** — gde se neuravnoteženost zaista vidi;
+* **macro F1**     - neponderisana srednja vrednost F1 po klasi (sve klase jednako);
+* **weighted F1**  - F1 ponderisan support-om (realističan prikaz);
+* **balanced accuracy** - alternativa nalik accuracy-ju (srednji recall po klasi);
+* **precision / recall / F1 po klasi** - gde se neuravnoteženost zaista vidi;
 * **confusion matrix**.
 
 Obična accuracy se takođe računa, ali samo kao sekundarna vrednost koja se
@@ -60,7 +60,7 @@ def compute_metrics(
     """Izračunaj skup metrika osetljivih na neuravnoteženost iz celobrojnih labela.
 
     ``num_classes`` obezbeđuje da odsutne klase i dalje budu prisutne (sa nulama) u
-    nizovima po klasi i u confusion matrici — važno kada val batch/podskup slučajno
+    nizovima po klasi i u confusion matrici - važno kada val batch/podskup slučajno
     izostavi retku klasu.
     """
     y_true = np.asarray(y_true)
