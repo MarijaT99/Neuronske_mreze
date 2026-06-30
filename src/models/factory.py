@@ -1,4 +1,4 @@
-"""Model factory — gradi bilo koji model iz config-spec-a.
+"""Model factory - gradi bilo koji model iz config-spec-a.
 
 Konstrukcija ostaje config-driven (pravilo projekta: bez hardkodovanih izbora
 modela). Model spec je dict poput::
