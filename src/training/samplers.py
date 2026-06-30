@@ -27,9 +27,9 @@ def compute_class_weights(
     """Loss težine po klasi iz celobrojnih labela.
 
     sheme:
-    * ``"inverse"``           — w_c ∝ 1 / count_c
-    * ``"inverse_sqrt"``      — w_c ∝ 1 / sqrt(count_c) (blaže)
-    * ``"effective"``         — class-balanced (Cui et al. 2019): (1-beta)/(1-beta^n_c)
+    * ``"inverse"``           - w_c ∝ 1 / count_c
+    * ``"inverse_sqrt"``      - w_c ∝ 1 / sqrt(count_c) (blaže)
+    * ``"effective"``         - class-balanced (Cui et al. 2019): (1-beta)/(1-beta^n_c)
 
     Težine se normalizuju na srednju vrednost 1 kako bi skala loss-a ostala uporediva.
     Vraća float niz dužine ``num_classes``.
