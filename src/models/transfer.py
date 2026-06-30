@@ -3,8 +3,8 @@
 Oba backbone-a se kreiraju kroz ``timm`` sa novim klasifikacionim head-om sa
 ``num_classes`` izlaza. Podržana su dva režima treniranja:
 
-* ``mode="feature_extraction"`` — zamrzni ceo backbone, treniraj samo head.
-* ``mode="finetune"``           — odmrzni poslednjih ``unfreeze_blocks`` stage-ova
+* ``mode="feature_extraction"`` - zamrzni ceo backbone, treniraj samo head.
+* ``mode="finetune"``           - odmrzni poslednjih ``unfreeze_blocks`` stage-ova
                                   (uz head); ostatak ostaje zamrznut. Prosledi
                                   ``unfreeze_blocks=-1`` da se odmrzne sve.
 
