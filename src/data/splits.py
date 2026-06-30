@@ -16,14 +16,14 @@ Postoji 38 takvih foldera koji obuhvataju 14 species. Dataset je nebalansiran na
   istovremeno čuva i raspodelu species (support jedne species je zbir njenih
   disease klasa) i po-species raspodelu bolesti.
 * Split je **sačuvan na disk** (``train.csv`` / ``val.csv`` / ``test.csv``
-  + ``label_maps.json``) i nikada se ne sme regenerisati u hodu — kod nizvodno
+  + ``label_maps.json``) i nikada se ne sme regenerisati u hodu - kod nizvodno
   učitava ove fajlove tako da svaki eksperiment vidi identične podatke.
 
 Konvencije za label-e (sve determinističke, izvedene iz alfabetskog sortiranja):
 
-* ``species_id``      — globalni indeks species, 0 .. 13.
-* ``class_id``        — globalni flat indeks, 0 .. 37 (38-class label).
-* ``disease_id_in_species`` — po-species indeks bolesti, 0 .. (k_species - 1),
+* ``species_id``      - globalni indeks species, 0 .. 13.
+* ``class_id``        - globalni flat indeks, 0 .. 37 (38-class label).
+* ``disease_id_in_species`` - po-species indeks bolesti, 0 .. (k_species - 1),
                        koji koriste hijerarhijski disease klasifikatori.
 
 Putanje sačuvane u CSV fajlovima su **relativne u odnosu na ``data_root``** tako
