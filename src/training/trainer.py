@@ -3,7 +3,7 @@
 Nezavisna od modela: radi sa BaselineCNN i timm TransferModel-om (oba primaju
 batch slika i vraćaju logits klasa). Namenjena je za **flat** zadatak i za
 treniranje pojedinačnog head-a u hijerarhiji (species head, ili disease head po
-species-u) — hijerarhija se sklapa u fazi evaluacije od zasebno treniranih head-ova.
+species-u) - hijerarhija se sklapa u fazi evaluacije od zasebno treniranih head-ova.
 
 Ključna pravila projekta ugrađena ovde:
 
