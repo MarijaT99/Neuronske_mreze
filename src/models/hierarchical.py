@@ -12,7 +12,7 @@ predikcija je ono što hijerarhijska evaluacija ocenjuje.
 Napomene o dizajnu
 ------------------
 * Species sa samo jednom disease klasom (Blueberry, Orange, Raspberry, Soybean,
-  Squash — svi "healthy") ne zahtevaju pravi disease head; kontejner direktno
+  Squash - svi "healthy") ne zahtevaju pravi disease head; kontejner direktno
   vraća njihov jedini disease id (0). ``trivial_species`` ih beleži.
 * Ovo je kontejner, a ne jedinstveni ``nn.Module`` forward graf: head-ovi se
   treniraju nezavisno (jednostavnije, u skladu sa planom) i kombinuju tek pri
