@@ -29,18 +29,18 @@ def _join(lines):
 
 cells = [
     md(
-        "# Treniranje na Kaggle-u — hijerarhijska klasifikacija bolesti biljaka",
+        "# Treniranje na Kaggle-u - hijerarhijska klasifikacija bolesti biljaka",
         "",
         "Šablon za pokretanje eksperimenata na Kaggle Notebook-u (T4 x2 / P100). Koraci:",
         "",
         "1. Dodaj dataset `abdallahalidev/plantvillage-dataset` (koristimo `color` folder).",
         "2. Kloniraj ovaj repozitorijum u `/kaggle/working` (sa pravom upisa) da bi `src/` import-i i",
         "   skripte mogle da upisuju checkpoint-e.",
-        "3. Sačuvani split je već u `data/splits/` — ponovo ga iskoristi (**nemoj** ga regenerisati).",
+        "3. Sačuvani split je već u `data/splits/` - ponovo ga iskoristi (**nemoj** ga regenerisati).",
         "4. Istreniraj flat baseline-e / glavu za vrstu / glave za bolest, pa evaluiraj pipeline.",
         "",
         "> **Politika metrika:** macro F1 je **primarna** metrika (dataset je neuravnotežen).",
-        "> Accuracy se navodi samo kao sekundarna vrednost — nikada kao glavni rezultat.",
+        "> Accuracy se navodi samo kao sekundarna vrednost - nikada kao glavni rezultat.",
     ),
     md(
         "## 0. Dovlačenje repozitorijuma u radni dir sa pravom upisa i podešavanje putanja",
@@ -55,7 +55,7 @@ cells = [
         "",
         "Kaggle-ova zaključana slika već ima torch / torchvision / timm / albumentations / sklearn,",
         "pa **treniranje radi potpuno offline**. (`grad-cam` za analizu grešaka u Fazi 6 može zahtevati",
-        "Internet — nije potreban za treniranje.)",
+        "Internet - nije potreban za treniranje.)",
     ),
     code(
         "import sys, os, shutil, subprocess",
@@ -152,7 +152,7 @@ cells = [
         "## 2b. Offline ImageNet težine za transfer learning modele",
         "",
         "Baseline treniran from scratch ne zahteva težine, ali ResNet-50 / EfficientNet-B0 obično",
-        "preuzimaju ImageNet težine sa HuggingFace-a — što ne uspeva bez Interneta. Otpremi",
+        "preuzimaju ImageNet težine sa HuggingFace-a - što ne uspeva bez Interneta. Otpremi",
         "dva `.safetensors` fajla kao Kaggle Dataset i dodaj ga kao Input; ova ćelija pronalazi",
         "folder i usmerava `transfer.py` ka njemu preko `PDH_PRETRAINED_DIR` (da ih timm učita sa",
         "diska). `HF_HUB_OFFLINE=1` preskače kašnjenja zbog ponovnih mrežnih pokušaja. Preskoči ovu ćeliju ako pokrećeš samo",
@@ -179,7 +179,7 @@ cells = [
         "    print('PDH_PRETRAINED_DIR =', wdir)",
         "    print('weights:', [p.name for p in wdir.glob('*.safetensors')])",
         "else:",
-        "    print('WARNING: no *.safetensors found — transfer models will try to download (needs Internet).')",
+        "    print('WARNING: no *.safetensors found - transfer models will try to download (needs Internet).')",
     ),
     md(
         "## 3. Flat baseline-i",
@@ -202,7 +202,7 @@ cells = [
         "",
         "Prikazuje end-to-end macro / weighted F1, balanced accuracy, **propagaciju grešaka**",
         "(koliki deo end-to-end grešaka potiče od pogrešne predikcije vrste), i",
-        "razliku u macro F1 između flat i hijerarhijskog pristupa — ključni rezultat teze.",
+        "razliku u macro F1 između flat i hijerarhijskog pristupa - ključni rezultat teze.",
     ),
     code(
         "!python scripts/evaluate_pipeline.py \\",
