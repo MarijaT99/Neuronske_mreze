@@ -4,7 +4,7 @@ Ovo je srž poređenja u radu. Hijerarhijska predikcija je tačna samo ako su **
 nivoa tačna: species head mora izabrati pravi species *i* disease head tog
 species-a mora izabrati pravu bolest. Pošto je disease head koji se koristi pri
 inferenci onaj za *predviđeni* species, greška u species-u skoro uvek izaziva i
-grešku u bolesti — to je **error propagation**, i mi to eksplicitno kvantifikujemo.
+grešku u bolesti - to je **error propagation**, i mi to eksplicitno kvantifikujemo.
 
 Uključena su dva prostora labela:
 
@@ -105,7 +105,7 @@ def evaluate_hierarchical(
 
     Sva četiri niza su poravnata po uzorku. ``pred_disease_in_species`` mora biti
     bolest koju predviđa head *predviđenog* species-a (da bi se obuhvatila
-    propagacija) — tačno ono što ``HierarchicalClassifier.predict`` vraća.
+    propagacija) - tačno ono što ``HierarchicalClassifier.predict`` vraća.
     """
     true_species = np.asarray(true_species)
     true_disease_in_species = np.asarray(true_disease_in_species)
