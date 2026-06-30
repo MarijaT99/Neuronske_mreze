@@ -4,7 +4,7 @@ Projekat iz predmeta *Neuronske mreže*, Fakultet tehničkih nauka, Univerzitet 
 (master studije, Mašinsko učenje i veštačka inteligencija). Autor: Marija Tadić, E9 12/2024.
 
 Hijerarhijska klasifikacija biljnih bolesti sa fotografija listova na skupu **PlantVillage**
-(*color* verzija, 54.306 RGB slika, 14 vrsta, 38 (vrsta, bolest) klasa).
+(*color* verzija, 54.305 RGB slika, 14 vrsta, 38 (vrsta, bolest) klasa).
 
 - **Nivo 1 (vrsta):** klasifikacija biljne vrste (14 klasa).
 - **Nivo 2 (bolest):** tip bolesti unutar prepoznate vrste (jedan *disease* klasifikator po vrsti).
