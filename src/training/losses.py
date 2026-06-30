@@ -2,10 +2,10 @@
 
 Tri uporedive strategije (projekat ih poredi):
 
-1. **Weighted cross-entropy** — ``nn.CrossEntropyLoss(weight=...)`` sa težinama
+1. **Weighted cross-entropy** - ``nn.CrossEntropyLoss(weight=...)`` sa težinama
    iz :func:`src.training.samplers.compute_class_weights`. Ovde se obezbeđuje
    kroz jednostavan builder radi konstrukcije vođene config-om.
-2. **Focal loss** (Lin et al. 2017) — smanjuje težinu lakih primera i fokusira
+2. **Focal loss** (Lin et al. 2017) - smanjuje težinu lakih primera i fokusira
    treniranje na teške/retke. Podržava opcioni ``alpha`` po klasi.
 
 ``build_loss`` bira loss iz config specifikacije kako bi eksperimenti ostali
