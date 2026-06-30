@@ -1,4 +1,4 @@
-# Flat ResNet-50 sa 38 klasa (ImageNet pretrained) — GLAVNA flat referenca.
+# Flat ResNet-50 sa 38 klasa (ImageNet pretrained) - GLAVNA flat referenca.
 # Fine-tuning poslednjih stage-ova + glave (head).
 
 extends: _base.yaml
