@@ -1,6 +1,6 @@
 """Baseline CNN treniran od nule (from scratch).
 
-Namerno jednostavna konvoluciona mreža sa 4 bloka — "from scratch" referentna
+Namerno jednostavna konvoluciona mreža sa 4 bloka - "from scratch" referentna
 tačka u odnosu na koju se porede modeli zasnovani na transfer learning-u. Namerno
 je držana malom (pravilo projekta: baseline mora biti jednostavan; bez custom
 mreža sa 5-6 blokova).
@@ -10,7 +10,7 @@ zatim global average pooling + dropout + linearni head. GAP (umesto velikih FC
 slojeva) drži broj parametara skromnim i otporan je na veličinu ulaza.
 
 Koristi se i za flat baseline sa 38 klasa i kao disease head po species-u u
-hijerarhijskom baseline-u — dovoljno je samo promeniti ``num_classes``.
+hijerarhijskom baseline-u - dovoljno je samo promeniti ``num_classes``.
 """
 
 from __future__ import annotations
