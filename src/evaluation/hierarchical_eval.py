@@ -1,23 +1,23 @@
-"""End-to-end hierarchical evaluation + error-propagation analysis.
+"""End-to-end hijerarhijska evaluacija + analiza error propagation.
 
-This is the heart of the thesis comparison. A hierarchical prediction is correct
-only if **both** levels are right: the species head must pick the right species
-*and* that species' disease head must pick the right disease. Because the disease
-head used at inference is the one for the *predicted* species, a species error
-almost always forces a disease error — this is **error propagation**, and we
-quantify it explicitly.
+Ovo je srž poređenja u radu. Hijerarhijska predikcija je tačna samo ako su **oba**
+nivoa tačna: species head mora izabrati pravi species *i* disease head tog
+species-a mora izabrati pravu bolest. Pošto je disease head koji se koristi pri
+inferenci onaj za *predviđeni* species, greška u species-u skoro uvek izaziva i
+grešku u bolesti — to je **error propagation**, i mi to eksplicitno kvantifikujemo.
 
-Two label spaces are involved:
+Uključena su dva prostora labela:
 
-* per-species disease id (what each disease head outputs), and
-* the global 38-class id (what the flat baseline outputs).
+* disease id po species-u (ono što svaki disease head daje), i
+* globalni 38-class id (ono što flat baseline daje).
 
-We map hierarchical (species, disease-in-species) predictions back to the global
-38-class id via the label maps, so flat and hierarchical models are scored on the
-**same** 38-class metric suite (macro F1 etc.) for a fair comparison.
+Hijerarhijske (species, disease-in-species) predikcije preslikavamo nazad na
+globalni 38-class id preko label mapa, tako da se flat i hijerarhijski modeli
+ocenjuju na **istom** skupu metrika za 38 klasa (macro F1 itd.) radi poštenog
+poređenja.
 
-Inputs are arrays already collected from a model (no torch here) so this module
-is easy to unit-test and reuse.
+Ulazi su nizovi već prikupljeni iz modela (ovde nema torch-a) pa je ovaj modul
+lako unit-testirati i ponovo koristiti.
 """
 
 from __future__ import annotations
@@ -32,22 +32,22 @@ from src.evaluation.metrics import MetricResult, compute_metrics
 
 @dataclass
 class HierarchicalEvalResult:
-    """Full breakdown of a hierarchical evaluation pass."""
+    """Potpun pregled jednog prolaza hijerarhijske evaluacije."""
 
-    # End-to-end 38-class metrics (directly comparable to the flat baseline).
+    # End-to-end metrike za 38 klasa (direktno uporedive sa flat baseline-om).
     end_to_end: MetricResult
-    # Level-1 (species) metrics.
+    # Metrike nivoa 1 (species).
     species: MetricResult
-    # Level-2 disease metrics computed ONLY on samples whose species was correct
-    # (isolates the disease heads' own quality from propagated species errors).
+    # Metrike bolesti na nivou 2 računate SAMO na uzorcima čiji je species tačan
+    # (izoluje sopstveni kvalitet disease head-ova od prenetih grešaka u species-u).
     disease_given_correct_species: MetricResult
 
-    # Error-propagation accounting.
+    # Obračun error propagation.
     n: int
     species_correct: int
     end_to_end_correct: int
-    # Of all end-to-end errors, how many had a WRONG species (propagated) vs a
-    # right species but wrong disease (genuine L2 error)?
+    # Od svih end-to-end grešaka, koliko ih je imalo POGREŠAN species (preneto) u
+    # odnosu na tačan species ali pogrešnu bolest (prava greška na nivou 2)?
     errors_from_species: int
     errors_from_disease_only: int
 
@@ -57,7 +57,7 @@ class HierarchicalEvalResult:
             "end_to_end_macro_f1": self.end_to_end.macro_f1,
             "end_to_end_weighted_f1": self.end_to_end.weighted_f1,
             "end_to_end_balanced_acc": self.end_to_end.balanced_accuracy,
-            "end_to_end_accuracy": self.end_to_end.accuracy,  # secondary
+            "end_to_end_accuracy": self.end_to_end.accuracy,  # sekundarno
             "species_macro_f1": self.species.macro_f1,
             "disease_given_correct_species_macro_f1": self.disease_given_correct_species.macro_f1,
             "species_correct_frac": self.species_correct / max(self.n, 1),
@@ -73,8 +73,8 @@ def _to_global_class_id(
     disease_in_species: np.ndarray,
     maps: LabelMaps,
 ) -> np.ndarray:
-    """Map (species_id, disease-in-species) pairs to the global 38-class id."""
-    # Build a lookup: (species_id, local_disease) -> global class_id.
+    """Preslikaj (species_id, disease-in-species) parove na globalni 38-class id."""
+    # Napravi lookup: (species_id, local_disease) -> global class_id.
     lookup: dict[tuple[int, int], int] = {}
     for class_name, gid in maps.class_to_id.items():
         species, disease = class_name.split("___", 1)
@@ -84,8 +84,8 @@ def _to_global_class_id(
 
     out = np.empty(len(species_id), dtype=np.int64)
     for i, (s, d) in enumerate(zip(species_id, disease_in_species)):
-        # Clamp disease id into the valid range for that species (a disease head
-        # can only output ids it has; defensive for trivial species -> 0).
+        # Ograniči disease id na važeći opseg za taj species (disease head može
+        # dati samo id-jeve koje ima; defanzivno za trivijalne species -> 0).
         key = (int(s), int(d))
         if key not in lookup:
             key = (int(s), 0)
@@ -101,11 +101,11 @@ def evaluate_hierarchical(
     pred_disease_in_species: np.ndarray,
     maps: LabelMaps,
 ) -> HierarchicalEvalResult:
-    """Compute end-to-end + per-level metrics and error-propagation accounting.
+    """Izračunaj end-to-end + metrike po nivou i obračun error propagation.
 
-    All four arrays are aligned per-sample. ``pred_disease_in_species`` must be
-    the disease predicted by the head of the *predicted* species (so propagation
-    is captured) — exactly what ``HierarchicalClassifier.predict`` returns.
+    Sva četiri niza su poravnata po uzorku. ``pred_disease_in_species`` mora biti
+    bolest koju predviđa head *predviđenog* species-a (da bi se obuhvatila
+    propagacija) — tačno ono što ``HierarchicalClassifier.predict`` vraća.
     """
     true_species = np.asarray(true_species)
     true_disease_in_species = np.asarray(true_disease_in_species)
@@ -113,14 +113,14 @@ def evaluate_hierarchical(
     pred_disease_in_species = np.asarray(pred_disease_in_species)
     n = len(true_species)
 
-    # --- map both sides to global 38-class ids for end-to-end metrics ----
+    # --- preslikaj obe strane na globalne 38-class id-jeve za end-to-end metrike ----
     true_global = _to_global_class_id(true_species, true_disease_in_species, maps)
     pred_global = _to_global_class_id(pred_species, pred_disease_in_species, maps)
 
     end_to_end = compute_metrics(true_global, pred_global, num_classes=maps.num_classes)
     species = compute_metrics(true_species, pred_species, num_classes=maps.num_species)
 
-    # --- L2 quality isolated from propagation ----------------------------
+    # --- kvalitet na nivou 2 izolovan od propagacije ----------------------
     species_ok = pred_species == true_species
     if species_ok.any():
         dgcs = compute_metrics(
@@ -130,7 +130,7 @@ def evaluate_hierarchical(
     else:
         dgcs = compute_metrics(np.array([0]), np.array([0]))
 
-    # --- error-propagation accounting ------------------------------------
+    # --- obračun error propagation ----------------------------------------
     end_to_end_ok = pred_global == true_global
     end_to_end_correct = int(end_to_end_ok.sum())
     errors = ~end_to_end_ok

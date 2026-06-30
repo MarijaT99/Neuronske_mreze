@@ -1,19 +1,19 @@
-"""PlantVillageDataset — reads the persisted split CSVs.
+"""PlantVillageDataset — čita sačuvane split CSV fajlove.
 
-Two modes:
+Dva režima:
 
-* ``mode="flat"`` — returns ``(image, class_id)`` where ``class_id`` is the
-  global 38-class (species, disease) label. Used by the flat baseline.
-* ``mode="hierarchical"`` — returns ``(image, species_id, disease_id_in_species)``.
-  ``disease_id_in_species`` is the *per-species* disease index, which is what the
-  per-species disease heads predict.
+* ``mode="flat"`` — vraća ``(image, class_id)`` gde je ``class_id`` globalni
+  38-class (species, disease) label. Koristi ga flat baseline.
+* ``mode="hierarchical"`` — vraća ``(image, species_id, disease_id_in_species)``.
+  ``disease_id_in_species`` je *po-species* indeks bolesti, što je upravo ono što
+  predviđaju po-species disease head-ovi.
 
-The dataset never re-scans the image folders: it consumes the dataframe produced
-by :mod:`src.data.splits` (loaded from ``data/splits/<split>.csv``), so every
-experiment sees the identical, persisted split.
+Dataset nikada ponovo ne skenira foldere sa slikama: koristi dataframe koji
+proizvodi :mod:`src.data.splits` (učitan iz ``data/splits/<split>.csv``), tako da
+svaki eksperiment vidi identičan, sačuvani split.
 
-Images are decoded with OpenCV (BGR->RGB) because the albumentations pipelines
-operate on numpy HWC uint8 arrays.
+Slike se dekodiraju pomoću OpenCV-a (BGR->RGB) jer albumentations pipeline-i
+rade nad numpy HWC uint8 nizovima.
 """
 
 from __future__ import annotations
@@ -31,12 +31,12 @@ VALID_MODES = ("flat", "hierarchical")
 
 
 def _read_rgb(path: Path) -> np.ndarray:
-    """Decode an image to an RGB uint8 HWC numpy array.
+    """Dekodiraj sliku u RGB uint8 HWC numpy niz.
 
-    Uses ``np.fromfile`` + ``cv2.imdecode`` rather than ``cv2.imread`` because
-    OpenCV's ``imread`` cannot open paths containing non-ASCII characters on
-    Windows. ``np.fromfile`` opens via Python's Unicode-aware IO, so the byte
-    buffer is decoded path-agnostically.
+    Koristi ``np.fromfile`` + ``cv2.imdecode`` umesto ``cv2.imread`` jer
+    OpenCV-ov ``imread`` ne može da otvori putanje sa ne-ASCII karakterima na
+    Windows-u. ``np.fromfile`` otvara preko Python-ovog Unicode-svesnog IO-a, pa se
+    bajt bafer dekodira nezavisno od putanje.
     """
     import cv2
 
@@ -50,22 +50,23 @@ def _read_rgb(path: Path) -> np.ndarray:
 
 
 class PlantVillageDataset(Dataset):
-    """Torch dataset over a persisted PlantVillage split.
+    """Torch dataset nad sačuvanim PlantVillage split-om.
 
-    Parameters
+    Parametri
     ----------
     df:
-        Labelled split dataframe (must contain at least ``filepath`` and the
-        relevant label columns). Mutually exclusive with ``splits_dir``/``split``.
+        Labelirani split dataframe (mora sadržati barem ``filepath`` i
+        odgovarajuće label kolone). Međusobno isključiv sa ``splits_dir``/``split``.
     data_root:
-        Root the ``filepath`` column is relative to (the ``color`` folder).
+        Koren u odnosu na koji je relativna kolona ``filepath`` (``color`` folder).
     mode:
-        ``"flat"`` or ``"hierarchical"``.
+        ``"flat"`` ili ``"hierarchical"``.
     transform:
-        An albumentations ``Compose`` (called as ``transform(image=arr)``).
+        Albumentations ``Compose`` (poziva se kao ``transform(image=arr)``).
     species_filter:
-        If set (only valid in hierarchical mode), keep only rows of that
-        ``species_id``. Used when training a single per-species disease head.
+        Ako je postavljen (validan samo u hijerarhijskom režimu), zadržava samo
+        redove tog ``species_id``-a. Koristi se pri treniranju jednog po-species
+        disease head-a.
     """
 
     def __init__(
@@ -122,17 +123,17 @@ class PlantVillageDataset(Dataset):
             return image, int(row["class_id"])
         return image, int(row["species_id"]), int(row["disease_id_in_species"])
 
-    # ---- helpers for loss weighting / sampling ------------------------------
+    # ---- pomoćne funkcije za loss weighting / sampling ----------------------
     def label_column(self) -> str:
-        """Name of the target column for the current mode (for sampler/weights)."""
+        """Naziv ciljne kolone za trenutni režim (za sampler/težine)."""
         return "class_id" if self.mode == "flat" else "disease_id_in_species"
 
     def labels(self) -> np.ndarray:
-        """Integer target labels as a numpy array (for the current mode)."""
+        """Celobrojni ciljni label-i kao numpy niz (za trenutni režim)."""
         return self.df[self.label_column()].to_numpy()
 
     def class_counts(self) -> np.ndarray:
-        """Per-class sample counts, indexed by label id (0..num_classes-1)."""
+        """Broj uzoraka po klasi, indeksiran po label id-u (0..num_classes-1)."""
         labels = self.labels()
         num = int(labels.max()) + 1 if len(labels) else 0
         return np.bincount(labels, minlength=num)

@@ -1,20 +1,20 @@
-"""Classification metrics — imbalance-aware by design.
+"""Metrike klasifikacije — po dizajnu osetljive na neuravnoteženost.
 
-Project rule (supervisor): **accuracy is never the primary metric** because the
-dataset is imbalanced at both hierarchy levels. The primary metrics are:
+Pravilo projekta (mentor): **accuracy nikada nije primarna metrika** jer je
+dataset neuravnotežen na oba nivoa hijerarhije. Primarne metrike su:
 
-* **macro F1**     — unweighted mean of per-class F1 (treats every class equally);
-* **weighted F1**  — F1 weighted by support (realistic view);
-* **balanced accuracy** — the accuracy-like alternative (mean per-class recall);
-* **per-class precision / recall / F1** — where the imbalance actually shows;
+* **macro F1**     — neponderisana srednja vrednost F1 po klasi (sve klase jednako);
+* **weighted F1**  — F1 ponderisan support-om (realističan prikaz);
+* **balanced accuracy** — alternativa nalik accuracy-ju (srednji recall po klasi);
+* **precision / recall / F1 po klasi** — gde se neuravnoteženost zaista vidi;
 * **confusion matrix**.
 
-Plain accuracy is computed too, but only as a secondary figure to be reported
-with the caveat that it over-credits the majority classes.
+Obična accuracy se takođe računa, ali samo kao sekundarna vrednost koja se
+izveštava uz napomenu da precenjuje većinske klase.
 
-``compute_metrics`` returns a flat dict of scalars (easy to log per-epoch) plus
-the per-class arrays under ``per_class``. The checkpoint/early-stopping criterion
-upstream is ``macro_f1``.
+``compute_metrics`` vraća ravan dict skalara (lak za logovanje po epoch-u) plus
+nizove po klasi pod ``per_class``. Kriterijum za checkpoint/early-stopping uzvodno
+je ``macro_f1``.
 """
 
 from __future__ import annotations
@@ -33,16 +33,16 @@ from sklearn.metrics import (
 
 @dataclass
 class MetricResult:
-    """Container for a metrics snapshot (one eval pass)."""
+    """Kontejner za snimak metrika (jedan prolaz evaluacije)."""
 
     macro_f1: float
     weighted_f1: float
     balanced_accuracy: float
-    accuracy: float  # secondary only
+    accuracy: float  # samo sekundarno
     per_class: dict[str, np.ndarray] = field(default_factory=dict)
 
     def scalars(self) -> dict[str, float]:
-        """Flat scalar dict for logging (excludes per-class arrays)."""
+        """Ravan dict skalara za logovanje (bez nizova po klasi)."""
         return {
             "macro_f1": self.macro_f1,
             "weighted_f1": self.weighted_f1,
@@ -57,11 +57,11 @@ def compute_metrics(
     *,
     num_classes: int | None = None,
 ) -> MetricResult:
-    """Compute the imbalance-aware metric suite from integer labels.
+    """Izračunaj skup metrika osetljivih na neuravnoteženost iz celobrojnih labela.
 
-    ``num_classes`` ensures absent classes still appear (with zeros) in per-class
-    arrays and the confusion matrix — important when a val batch/subset happens
-    to miss a rare class.
+    ``num_classes`` obezbeđuje da odsutne klase i dalje budu prisutne (sa nulama) u
+    nizovima po klasi i u confusion matrici — važno kada val batch/podskup slučajno
+    izostavi retku klasu.
     """
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
@@ -97,7 +97,7 @@ def confusion(
     num_classes: int | None = None,
     normalize: str | None = None,
 ) -> np.ndarray:
-    """Confusion matrix; ``normalize`` in {None, 'true', 'pred', 'all'}."""
+    """Confusion matrix; ``normalize`` u {None, 'true', 'pred', 'all'}."""
     labels = list(range(num_classes)) if num_classes is not None else None
     return confusion_matrix(y_true, y_pred, labels=labels, normalize=normalize)
 
@@ -106,7 +106,7 @@ def per_class_table(
     result: MetricResult,
     class_names: list[str] | None = None,
 ):
-    """Build a per-class precision/recall/F1/support DataFrame (for reports)."""
+    """Napravi DataFrame sa precision/recall/F1/support po klasi (za izveštaje)."""
     import pandas as pd
 
     pc = result.per_class

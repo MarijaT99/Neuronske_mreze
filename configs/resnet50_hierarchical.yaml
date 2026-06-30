@@ -1,6 +1,6 @@
-# Hierarchical ResNet-50: one species head (14 classes) + per-species disease
-# heads (only the 9 non-trivial species get a real head; 5 single-class species
-# route to disease id 0). Same backbone recipe reused for every head.
+# Hijerarhijski ResNet-50: jedna glava za vrstu (14 klasa) + glave za bolest po
+# vrsti (samo 9 netrivijalnih vrsta dobija pravu glavu; 5 vrsta sa jednom klasom
+# se preusmerava na disease id 0). Isti recept za backbone se koristi za svaku glavu.
 
 extends: _base.yaml
 
@@ -10,7 +10,7 @@ experiment:
 task:
   type: hierarchical
 
-# Species (L1) classifier.
+# Klasifikator vrste (L1).
 species_model:
   type: resnet50
   pretrained: true
@@ -18,8 +18,8 @@ species_model:
   unfreeze_blocks: 2
   drop_rate: 0.2
 
-# Per-species disease (L2) classifier — same arch, num_classes set per species
-# at train time from label_maps.
+# Klasifikator bolesti po vrsti (L2) — ista arhitektura, num_classes se postavlja
+# po vrsti tokom treniranja iz label_maps.
 disease_model:
   type: resnet50
   pretrained: true

@@ -1,14 +1,14 @@
-"""Train per-species disease (L2) classifiers — one per non-trivial species.
+"""Trenira disease (L2) klasifikatore po species — jedan po netrivijalnom species.
 
-Loops over the species that have more than one disease class (9 of 14; the other
-5 are single-class "healthy"-only species that need no head). Each head is
-trained on that species' subset only, predicting disease_id_in_species
-(label_index=2 in the hierarchical tuple).
+Prolazi kroz species koji imaju više od jedne disease klase (9 od 14; preostalih
+5 su species sa samo jednom klasom "healthy" kojima ne treba head). Svaki head se
+trenira samo na podskupu tog species, predviđajući disease_id_in_species
+(label_index=2 u hijerarhijskom tuple-u).
 
-Usage::
+Upotreba::
 
     python scripts/train_disease.py --config configs/resnet50_hierarchical.yaml
-    # train just one species:
+    # treniraj samo jedan species:
     python scripts/train_disease.py --config ... --only Tomato
 """
 
@@ -47,7 +47,7 @@ def main() -> int:
     device = torch.device(args.device or ("cuda" if torch.cuda.is_available() else "cpu"))
 
     maps = load_maps(cfg)
-    # Non-trivial species = more than one disease class.
+    # Netrivijalni species = više od jedne disease klase.
     non_trivial = [
         (name, sid) for name, sid in maps.species_to_id.items()
         if maps.num_diseases_for(sid) > 1
@@ -65,7 +65,7 @@ def main() -> int:
 
     for name, sid in non_trivial:
         k = maps.num_diseases_for(sid)
-        # Re-seed per head so each head's run is reproducible regardless of order.
+        # Ponovo postavi seed po head-u da bi pokretanje svakog head-a bilo reproducibilno bez obzira na redosled.
         seed_everything(cfg.get("seed", 42))
 
         train_loader, val_loader, train_ds, _ = make_loaders_flat(

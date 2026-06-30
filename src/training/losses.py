@@ -1,14 +1,15 @@
-"""Loss functions for imbalanced classification.
+"""Loss funkcije za klasifikaciju na neuravnoteženim podacima.
 
-Three comparable strategies (the project compares them):
+Tri uporedive strategije (projekat ih poredi):
 
-1. **Weighted cross-entropy** — ``nn.CrossEntropyLoss(weight=...)`` with weights
-   from :func:`src.training.samplers.compute_class_weights`. Provided here via a
-   thin builder for config-driven construction.
-2. **Focal loss** (Lin et al. 2017) — down-weights easy examples, focusing
-   training on hard/rare ones. Supports an optional per-class ``alpha`` weight.
+1. **Weighted cross-entropy** — ``nn.CrossEntropyLoss(weight=...)`` sa težinama
+   iz :func:`src.training.samplers.compute_class_weights`. Ovde se obezbeđuje
+   kroz jednostavan builder radi konstrukcije vođene config-om.
+2. **Focal loss** (Lin et al. 2017) — smanjuje težinu lakih primera i fokusira
+   treniranje na teške/retke. Podržava opcioni ``alpha`` po klasi.
 
-``build_loss`` dispatches from a config spec so experiments stay config-driven.
+``build_loss`` bira loss iz config specifikacije kako bi eksperimenti ostali
+vođeni config-om.
 """
 
 from __future__ import annotations
@@ -23,13 +24,13 @@ class FocalLoss(nn.Module):
 
     FL(p_t) = -alpha_t * (1 - p_t)^gamma * log(p_t)
 
-    Parameters
-    ----------
+    Parametri
+    ---------
     gamma:
-        Focusing parameter (0 reduces to (weighted) cross-entropy).
+        Parametar fokusiranja (0 se svodi na (weighted) cross-entropy).
     alpha:
-        Optional per-class weight tensor of shape (num_classes,). Acts like the
-        class weights in weighted CE.
+        Opcioni tensor težina po klasi oblika (num_classes,). Ponaša se kao
+        težine klasa u weighted CE.
     reduction:
         'mean' | 'sum' | 'none'.
     """
@@ -45,16 +46,16 @@ class FocalLoss(nn.Module):
             raise ValueError("reduction must be 'mean'|'sum'|'none'")
         self.gamma = gamma
         self.reduction = reduction
-        # Register alpha as a buffer so .to(device)/state_dict handle it.
+        # Registruj alpha kao buffer kako bi .to(device)/state_dict njime upravljali.
         if alpha is not None:
             self.register_buffer("alpha", torch.as_tensor(alpha, dtype=torch.float32))
         else:
             self.alpha = None
 
     def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        # Per-sample CE without reduction; weight applies alpha_t automatically.
+        # CE po uzorku bez reduction; weight automatski primenjuje alpha_t.
         ce = F.cross_entropy(logits, target, weight=self.alpha, reduction="none")
-        # p_t = exp(-ce_unweighted); recover via softmax prob of the true class.
+        # p_t = exp(-ce_unweighted); dobija se preko softmax verovatnoće tačne klase.
         log_pt = F.log_softmax(logits, dim=1).gather(1, target.unsqueeze(1)).squeeze(1)
         pt = log_pt.exp()
         focal_factor = (1.0 - pt).pow(self.gamma)
@@ -68,17 +69,17 @@ class FocalLoss(nn.Module):
 
 
 def build_loss(spec: dict, class_weights: torch.Tensor | None = None) -> nn.Module:
-    """Build a loss module from a config spec.
+    """Napravi loss modul iz config specifikacije.
 
-    Specs::
+    Specifikacije::
 
-        {"type": "ce"}                              # plain cross-entropy
-        {"type": "weighted_ce"}                     # CE with class_weights
-        {"type": "focal", "gamma": 2.0}             # focal, no alpha
-        {"type": "focal", "gamma": 2.0, "use_weights": true}  # focal w/ alpha
+        {"type": "ce"}                              # obična cross-entropy
+        {"type": "weighted_ce"}                     # CE sa class_weights
+        {"type": "focal", "gamma": 2.0}             # focal, bez alpha
+        {"type": "focal", "gamma": 2.0, "use_weights": true}  # focal sa alpha
 
-    ``class_weights`` (from train counts) is required for 'weighted_ce' and for
-    focal with ``use_weights: true``.
+    ``class_weights`` (iz brojeva na train splitu) je obavezno za 'weighted_ce' i
+    za focal sa ``use_weights: true``.
     """
     spec = dict(spec)
     loss_type = spec.pop("type", "ce")

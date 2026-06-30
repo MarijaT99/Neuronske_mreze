@@ -1,19 +1,19 @@
-"""Training-infra sanity check: metrics, losses, and a real mini training run.
+"""Sanity check training infrastrukture: metrike, loss-evi i stvarni mini training run.
 
-Offline, CPU, synthetic data. Verifies:
-* compute_metrics matches hand-computed values on a tiny imbalanced example, and
-  macro F1 != accuracy there (the whole point of the metric choice);
-* build_loss dispatches ce / weighted_ce / focal; focal(gamma=0) == CE;
-* FocalLoss down-weights easy examples vs CE;
-* Trainer runs end-to-end on a synthetic dataset, writes best.pth + history.json,
-  checkpoints by macro F1, and early-stops.
+Offline, CPU, sintetički podaci. Proverava:
+* compute_metrics se poklapa sa ručno izračunatim vrednostima na malenom neuravnoteženom
+  primeru, i tu je macro F1 != accuracy (cela poenta izbora metrike);
+* build_loss dispečuje ce / weighted_ce / focal; focal(gamma=0) == CE;
+* FocalLoss daje manju težinu lakim primerima u odnosu na CE;
+* Trainer se izvršava end-to-end na sintetičkom dataset-u, upisuje best.pth + history.json,
+  pravi checkpoint po macro F1 i radi early stopping.
 
-Writes a report to $TEMP; exits non-zero on failure.
+Upisuje izveštaj u $TEMP; izlazi sa kodom različitim od nule pri padu.
 """
 
 from __future__ import annotations
 
-import _bootstrap  # noqa: F401  -- repo root on sys.path + CWD pinned
+import _bootstrap  # noqa: F401  -- koren repozitorijuma na sys.path + fiksiran CWD
 import os
 import sys
 import tempfile
@@ -53,19 +53,19 @@ def check(name: str, cond: bool, detail: str = "") -> None:
 def main() -> int:
     seed_everything(42)
 
-    # --- metrics: imbalanced toy where accuracy >> macro F1 --------------
-    # 18 of class 0, 2 of class 1. Predict all 0 -> acc 0.9 but macro F1 low.
+    # --- metrike: neuravnoteženi primer gde je accuracy >> macro F1 ------
+    # 18 iz klase 0, 2 iz klase 1. Predvidi sve 0 -> acc 0.9 ali nizak macro F1.
     y_true = np.array([0] * 18 + [1] * 2)
     y_pred = np.array([0] * 20)
     m = compute_metrics(y_true, y_pred, num_classes=2)
     check("metrics: accuracy 0.90 on all-majority prediction", abs(m.accuracy - 0.9) < 1e-9,
           f"acc={m.accuracy:.3f}")
-    # class1 F1 = 0 -> macro F1 = (F1_0 + 0)/2; F1_0 = 2*0.9*1/(1.9)=0.947 -> macro≈0.474
+    # za klasu 1 F1 = 0 -> macro F1 = (F1_0 + 0)/2; F1_0 = 2*0.9*1/(1.9)=0.947 -> macro≈0.474
     check("metrics: macro F1 << accuracy (imbalance exposed)", m.macro_f1 < 0.5,
           f"macro_f1={m.macro_f1:.3f}")
     check("metrics: balanced accuracy = 0.5 (recall 1 and 0)",
           abs(m.balanced_accuracy - 0.5) < 1e-9, f"balAcc={m.balanced_accuracy:.3f}")
-    # perfect prediction -> all 1.0
+    # savršeno predviđanje -> sve 1.0
     mp = compute_metrics(y_true, y_true, num_classes=2)
     check("metrics: perfect -> macro F1 = 1.0", abs(mp.macro_f1 - 1.0) < 1e-9)
     cm = confusion(y_true, y_pred, num_classes=2)
@@ -82,10 +82,10 @@ def main() -> int:
     focal0 = FocalLoss(gamma=0.0)
     check("loss: build ce/weighted_ce", isinstance(ce, nn.CrossEntropyLoss)
           and isinstance(wce, nn.CrossEntropyLoss))
-    # focal(gamma=0) == plain CE
+    # focal(gamma=0) == obični CE
     diff = (focal0(logits, target) - ce(logits, target)).abs().item()
     check("loss: focal(gamma=0) == CE", diff < 1e-5, f"|diff|={diff:.2e}")
-    # focal(gamma=2) < CE (easy examples down-weighted -> smaller mean loss here)
+    # focal(gamma=2) < CE (laki primeri dobijaju manju težinu -> ovde manji srednji loss)
     focal2 = FocalLoss(gamma=2.0)
     check("loss: focal(gamma=2) reduces loss vs CE on same logits",
           focal2(logits, target).item() < ce(logits, target).item(),
@@ -93,8 +93,8 @@ def main() -> int:
     fb = build_loss({"type": "focal", "gamma": 2.0, "use_weights": True}, class_weights=cw)
     check("loss: build focal with weights", isinstance(fb, FocalLoss) and fb.alpha is not None)
 
-    # --- Trainer end-to-end on synthetic separable data ------------------
-    # Tiny linearly-separable-ish problem so macro F1 actually improves.
+    # --- Trainer end-to-end na sintetičkim razdvojivim podacima ----------
+    # Maleni, približno linearno razdvojiv problem da bi macro F1 zaista rastao.
     torch.manual_seed(0)
     n_per, n_cls, dim = 60, 3, 16
     xs, ys = [], []
@@ -103,7 +103,7 @@ def main() -> int:
         xs.append(centers[c] + torch.randn(n_per, dim))
         ys.append(torch.full((n_per,), c))
     X = torch.cat(xs); Y = torch.cat(ys)
-    # reshape to image-like (B,3,H,W)? No — use a tiny MLP model instead.
+    # preoblikovati u oblik nalik slici (B,3,H,W)? Ne — umesto toga koristimo maleni MLP model.
     perm = torch.randperm(len(X))
     X, Y = X[perm], Y[perm]
     split = int(0.7 * len(X))
@@ -128,7 +128,7 @@ def main() -> int:
           f"final macroF1={history[-1].metrics['macro_f1']:.3f}")
     check("trainer: best_score tracked and monitor is macro_f1",
           trainer.cfg.monitor == "macro_f1" and trainer.best_score > 0)
-    # best.pth corresponds to the recorded best score
+    # best.pth odgovara zabeleženom najboljem score-u
     ckpt = torch.load(out_dir / "best.pth", map_location="cpu")
     check("trainer: checkpoint stores monitor + score",
           ckpt["monitor"] == "macro_f1" and abs(ckpt["score"] - trainer.best_score) < 1e-9)

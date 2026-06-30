@@ -1,16 +1,17 @@
 #requires -Version 5
 <#
 .SYNOPSIS
-    Robust local-run wrapper for plant-disease-hierarchical.
+    Robustan wrapper za lokalno pokretanje plant-disease-hierarchical projekta.
 
 .DESCRIPTION
-    Pins the working directory to the repo root (this script's folder) before
-    invoking Python, so relative paths work even when PowerShell's CWD has
-    drifted to the parent directory — a recurring problem when the repo lives
-    under OneDrive with a non-ASCII path. Also sets PYTHONDONTWRITEBYTECODE so
-    Python does not litter __pycache__ into the synced tree.
+    Fiksira radni direktorijum na koren repozitorijuma (folder ove skripte) pre
+    pokretanja Python-a, tako da relativne putanje rade čak i kada je CWD u
+    PowerShell-u odlutao do roditeljskog direktorijuma — što je čest problem kada
+    repozitorijum živi pod OneDrive-om sa putanjom koja sadrži ne-ASCII znakove.
+    Takođe postavlja PYTHONDONTWRITEBYTECODE da Python ne zatrpava __pycache__-om
+    sinhronizovano stablo.
 
-    Everything after the script/module is forwarded to Python untouched.
+    Sve nakon skripte/modula prosleđuje se Python-u nepromenjeno.
 
 .EXAMPLE
     .\run.ps1 scripts\sanity_check.py
@@ -22,8 +23,8 @@
     .\run.ps1 -m pytest
 
 .NOTES
-    Set $env:PDH_PYTHON to override the interpreter. Otherwise a local
-    .venv\Scripts\python.exe is preferred, falling back to "python" on PATH.
+    Postavi $env:PDH_PYTHON da prepišeš interpreter. U suprotnom, prednost ima
+    lokalni .venv\Scripts\python.exe, uz fallback na "python" sa PATH-a.
 #>
 [CmdletBinding()]
 param(
@@ -31,10 +32,10 @@ param(
     [string[]] $Forward
 )
 
-# Always run from the repo root (the directory containing this script).
+# Uvek pokreni iz korena repozitorijuma (direktorijum koji sadrži ovu skriptu).
 Set-Location -LiteralPath $PSScriptRoot
 
-# Keep the OneDrive-synced tree free of compiled bytecode.
+# Drži stablo sinhronizovano sa OneDrive-om bez kompajliranog bytecode-a.
 $env:PYTHONDONTWRITEBYTECODE = '1'
 
 $python =

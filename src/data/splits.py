@@ -1,7 +1,7 @@
-"""Stratified, persisted train/val/test splitting for PlantVillage.
+"""Stratified, sačuvano train/val/test deljenje za PlantVillage.
 
-The PlantVillage ``color`` dataset is laid out as one folder per
-``<Species>___<Disease>`` class::
+PlantVillage ``color`` dataset je organizovan kao jedan folder po
+``<Species>___<Disease>`` klasi::
 
     <data_root>/
         Apple___Apple_scab/*.jpg
@@ -9,25 +9,25 @@ The PlantVillage ``color`` dataset is laid out as one folder per
         ...
         Tomato___healthy/*.jpg
 
-There are 38 such folders spanning 14 species. The dataset is imbalanced at
-*both* hierarchy levels, so:
+Postoji 38 takvih foldera koji obuhvataju 14 species. Dataset je nebalansiran na
+*oba* nivoa hijerarhije, pa:
 
-* The split is **stratified on the 38-class (species, disease) label**. This
-  simultaneously preserves the species distribution (a species' support is the
-  sum of its disease classes) and the per-species disease distribution.
-* The split is **persisted to disk** (``train.csv`` / ``val.csv`` / ``test.csv``
-  + ``label_maps.json``) and must never be regenerated on the fly — downstream
-  code loads these files so every experiment sees identical data.
+* Split je **stratified po 38-class (species, disease) label-u**. To
+  istovremeno čuva i raspodelu species (support jedne species je zbir njenih
+  disease klasa) i po-species raspodelu bolesti.
+* Split je **sačuvan na disk** (``train.csv`` / ``val.csv`` / ``test.csv``
+  + ``label_maps.json``) i nikada se ne sme regenerisati u hodu — kod nizvodno
+  učitava ove fajlove tako da svaki eksperiment vidi identične podatke.
 
-Label conventions (all deterministic, derived from alphabetical sorting):
+Konvencije za label-e (sve determinističke, izvedene iz alfabetskog sortiranja):
 
-* ``species_id``      — global species index, 0 .. 13.
-* ``class_id``        — global flat index, 0 .. 37 (the 38-class label).
-* ``disease_id_in_species`` — per-species disease index, 0 .. (k_species - 1),
-                       used by the hierarchical disease classifiers.
+* ``species_id``      — globalni indeks species, 0 .. 13.
+* ``class_id``        — globalni flat indeks, 0 .. 37 (38-class label).
+* ``disease_id_in_species`` — po-species indeks bolesti, 0 .. (k_species - 1),
+                       koji koriste hijerarhijski disease klasifikatori.
 
-Paths stored in the CSVs are **relative to ``data_root``** so the splits are
-portable between the local machine and Kaggle.
+Putanje sačuvane u CSV fajlovima su **relativne u odnosu na ``data_root``** tako
+da su split-ovi prenosivi između lokalne mašine i Kaggle-a.
 """
 
 from __future__ import annotations
@@ -39,18 +39,18 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# PlantVillage uses a triple-underscore separator between species and disease.
+# PlantVillage koristi separator od tri donje crte između species i disease.
 CLASS_SEP = "___"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
 
 
 @dataclass
 class LabelMaps:
-    """Bidirectional label encodings, derived deterministically from the data."""
+    """Dvosmerna kodiranja label-a, deterministički izvedena iz podataka."""
 
     species_to_id: dict[str, int]
-    class_to_id: dict[str, int]  # full "Species___Disease" -> 0..37
-    # per species_id: {disease_name -> local disease id}
+    class_to_id: dict[str, int]  # pun "Species___Disease" -> 0..37
+    # po species_id: {disease_name -> lokalni disease id}
     disease_in_species_to_id: dict[int, dict[str, int]] = field(default_factory=dict)
 
     @property
@@ -76,7 +76,7 @@ class LabelMaps:
         payload = {
             "species_to_id": self.species_to_id,
             "class_to_id": self.class_to_id,
-            # JSON keys must be strings
+            # JSON ključevi moraju biti string-ovi
             "disease_in_species_to_id": {
                 str(sid): mapping for sid, mapping in self.disease_in_species_to_id.items()
             },
@@ -97,7 +97,7 @@ class LabelMaps:
 
 
 def _parse_class_name(class_name: str) -> tuple[str, str]:
-    """Split a ``Species___Disease`` folder name into (species, disease)."""
+    """Razdvoji naziv foldera ``Species___Disease`` na (species, disease)."""
     if CLASS_SEP not in class_name:
         raise ValueError(
             f"Class folder {class_name!r} does not contain the expected "
@@ -108,10 +108,10 @@ def _parse_class_name(class_name: str) -> tuple[str, str]:
 
 
 def scan_dataset(data_root: str | Path) -> pd.DataFrame:
-    """Walk ``data_root`` and build a per-image dataframe.
+    """Prođi kroz ``data_root`` i izgradi dataframe po slici.
 
-    Returns a frame with columns:
-    ``filepath`` (relative to data_root), ``class_name``, ``species``, ``disease``.
+    Vraća frame sa kolonama:
+    ``filepath`` (relativno u odnosu na data_root), ``class_name``, ``species``, ``disease``.
     """
     data_root = Path(data_root)
     if not data_root.is_dir():
@@ -148,7 +148,7 @@ def scan_dataset(data_root: str | Path) -> pd.DataFrame:
 
 
 def build_label_maps(df: pd.DataFrame) -> LabelMaps:
-    """Build deterministic label encodings from the scanned dataframe."""
+    """Izgradi determinističko kodiranje label-a iz skeniranog dataframe-a."""
     species_sorted = sorted(df["species"].unique())
     species_to_id = {s: i for i, s in enumerate(species_sorted)}
 
@@ -168,7 +168,7 @@ def build_label_maps(df: pd.DataFrame) -> LabelMaps:
 
 
 def encode_labels(df: pd.DataFrame, maps: LabelMaps) -> pd.DataFrame:
-    """Add integer label columns to the dataframe."""
+    """Dodaj celobrojne label kolone u dataframe."""
     df = df.copy()
     df["species_id"] = df["species"].map(maps.species_to_id).astype(int)
     df["class_id"] = df["class_name"].map(maps.class_to_id).astype(int)
@@ -187,12 +187,12 @@ def stratified_split(
     seed: int = 42,
     stratify_col: str = "class_id",
 ) -> pd.DataFrame:
-    """Add a ``split`` column with values in {train, val, test}.
+    """Dodaj kolonu ``split`` sa vrednostima u {train, val, test}.
 
-    Stratification is done on ``stratify_col`` (the 38-class label by default),
-    which preserves both the species and per-species disease distributions.
-    Performed as two stratified splits: first hold out (val+test), then divide
-    that holdout into val and test.
+    Stratifikacija se radi po ``stratify_col`` (podrazumevano 38-class label),
+    što čuva i raspodelu species i po-species raspodelu bolesti.
+    Izvodi se kao dva stratified split-a: prvo se izdvoji holdout (val+test),
+    zatim se taj holdout deli na val i test.
     """
     if not 0 < val_size < 1 or not 0 < test_size < 1:
         raise ValueError("val_size and test_size must be in (0, 1).")
@@ -209,7 +209,7 @@ def stratified_split(
         stratify=df[stratify_col],
     )
 
-    # Within the holdout, test's share is test_size / (val_size + test_size).
+    # Unutar holdout-a, udeo test-a je test_size / (val_size + test_size).
     rel_test_size = test_size / holdout_size
     val_idx, test_idx = train_test_split(
         holdout_idx,
@@ -233,11 +233,11 @@ def make_splits(
     test_size: float = 0.15,
     seed: int = 42,
 ) -> tuple[pd.DataFrame, LabelMaps]:
-    """End-to-end: scan, encode, stratified-split, and persist.
+    """Od početka do kraja: skeniranje, kodiranje, stratified-split i čuvanje.
 
-    Writes ``train.csv``, ``val.csv``, ``test.csv``, ``all.csv`` and
-    ``label_maps.json`` under ``out_dir``. Returns the full labelled dataframe
-    and the label maps.
+    Upisuje ``train.csv``, ``val.csv``, ``test.csv``, ``all.csv`` i
+    ``label_maps.json`` u ``out_dir``. Vraća kompletan labelirani dataframe
+    i label mape.
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -256,7 +256,7 @@ def make_splits(
 
 
 def load_split(splits_dir: str | Path, split: str) -> pd.DataFrame:
-    """Load a persisted split ('train' | 'val' | 'test' | 'all')."""
+    """Učitaj sačuvani split ('train' | 'val' | 'test' | 'all')."""
     path = Path(splits_dir) / f"{split}.csv"
     if not path.exists():
         raise FileNotFoundError(
@@ -266,7 +266,7 @@ def load_split(splits_dir: str | Path, split: str) -> pd.DataFrame:
 
 
 def split_summary(df: pd.DataFrame) -> pd.DataFrame:
-    """Per-split class counts plus the imbalance ratio (max/min support)."""
+    """Broj klasa po split-u plus odnos disbalansa (max/min support)."""
     counts = (
         df.groupby(["split", "class_name"]).size().unstack("split", fill_value=0)
     )

@@ -1,18 +1,19 @@
-"""Albumentations transform pipelines.
+"""Albumentations transform pipeline-i.
 
-Two pipelines:
+Dva pipeline-a:
 
-* ``build_train_transforms`` — **heavy** augmentation. This is deliberate: the
-  known PlantVillage failure mode is that models latch onto the near-uniform
-  per-class background instead of the lesion. Aggressive color jitter, random
-  erasing (CoarseDropout), perspective/affine warps and flips push the model to
-  rely on leaf/lesion texture rather than background cues. This is our main
-  mitigation for the background-bias limitation (alongside Grad-CAM analysis).
-* ``build_eval_transforms`` — **minimal**: resize + normalize only. No
-  augmentation on val/test, ever.
+* ``build_train_transforms`` — **jak** augmentation. To je namerno: poznati
+  način otkazivanja kod PlantVillage-a je da se modeli zakače za skoro uniforman
+  per-class background umesto za leziju. Agresivan color jitter, random
+  erasing (CoarseDropout), perspective/affine deformacije i flip-ovi teraju model
+  da se oslanja na teksturu lista/lezije pre nego na background tragove. Ovo je naša
+  glavna mera protiv background bias ograničenja (uz Grad-CAM analizu).
+* ``build_eval_transforms`` — **minimalan**: samo resize + normalize. Nikada nema
+  augmentation-a na val/test-u.
 
-Normalization defaults to ImageNet statistics (we use ImageNet-pretrained
-backbones). EDA confirmed PlantVillage's per-channel stats are close to these.
+Normalizacija podrazumevano koristi ImageNet statistiku (koristimo ImageNet
+pretrained backbone-ove). EDA je potvrdila da su PlantVillage per-channel statistike
+bliske ovima.
 """
 
 from __future__ import annotations
@@ -31,11 +32,11 @@ def build_train_transforms(
     std: tuple[float, float, float] = IMAGENET_STD,
     aug_strength: str = "heavy",
 ) -> A.Compose:
-    """Training augmentation pipeline.
+    """Pipeline za augmentation pri treniranju.
 
-    ``aug_strength`` in {"light", "medium", "heavy"} scales how aggressive the
-    augmentation is. "heavy" is the default and recommended for the
-    background-bias mitigation; "light"/"medium" are provided for ablations.
+    ``aug_strength`` u {"light", "medium", "heavy"} podešava koliko je agresivan
+    augmentation. "heavy" je podrazumevan i preporučen za ublažavanje background
+    bias-a; "light"/"medium" su predviđeni za ablacije.
     """
     if aug_strength not in {"light", "medium", "heavy"}:
         raise ValueError(f"aug_strength must be light|medium|heavy, got {aug_strength!r}")
@@ -64,7 +65,7 @@ def build_train_transforms(
     if aug_strength == "heavy":
         geometric.append(A.Perspective(scale=(0.05, 0.1), p=0.3))
 
-    # Color/lighting — attack the uniform-background cue most directly.
+    # Boja/osvetljenje — najdirektnije napada trag uniformnog background-a.
     cj_strength = {"light": 0.1, "medium": 0.2, "heavy": 0.3}[aug_strength]
     photometric: list = [
         A.ColorJitter(
@@ -90,7 +91,7 @@ def build_train_transforms(
 
     occlusion: list = []
     if aug_strength in {"medium", "heavy"}:
-        # Random erasing — forces use of multiple leaf regions, not one patch.
+        # Random erasing — prisiljava korišćenje više regiona lista, ne jednog dela.
         max_holes = 8 if aug_strength == "heavy" else 4
         hole_frac = 0.15 if aug_strength == "heavy" else 0.1
         occlusion.append(
@@ -119,8 +120,8 @@ def build_eval_transforms(
     mean: tuple[float, float, float] = IMAGENET_MEAN,
     std: tuple[float, float, float] = IMAGENET_STD,
 ) -> A.Compose:
-    """Validation/test pipeline: deterministic resize + normalize only."""
-    # Resize slightly larger then center-crop — standard ImageNet eval recipe.
+    """Pipeline za validaciju/test: samo deterministički resize + normalize."""
+    # Resize na malo veću dimenziju pa center-crop — standardna ImageNet eval procedura.
     resize = int(round(img_size * 1.14))
     return A.Compose(
         [
@@ -133,7 +134,7 @@ def build_eval_transforms(
 
 
 def build_transforms(split: str, img_size: int = 224, **kwargs) -> A.Compose:
-    """Convenience dispatcher: 'train' -> heavy aug, else -> eval transforms."""
+    """Praktičan dispečer: 'train' -> jak aug, inače -> eval transformacije."""
     if split == "train":
         return build_train_transforms(img_size, **kwargs)
     eval_kwargs = {k: v for k, v in kwargs.items() if k in {"mean", "std"}}

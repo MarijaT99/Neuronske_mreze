@@ -1,4 +1,4 @@
-"""Models package: baseline CNN, transfer wrappers, hierarchical container."""
+"""Paket sa modelima: baseline CNN, transfer wrapper-i, hijerarhijski kontejner."""
 
 from src.models.baseline_cnn import BaselineCNN
 from src.models.factory import build_model

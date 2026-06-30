@@ -1,10 +1,10 @@
-"""Inference-based figures for the paper: 38-class confusion matrix + Grad-CAM.
+"""Figure za rad zasnovane na inference-u: 38-klasna confusion matrix + Grad-CAM.
 
-Runs the trained FLAT ResNet-50 on the test split (locally, CPU is fine) and:
-* writes results/confusion_flat.png (row-normalized = per-class recall),
-* writes results/confused_pairs.csv (top off-diagonal confusions),
-* writes results/per_class_f1.csv (per-class precision/recall/F1/support),
-* writes results/gradcam.png (a grid of Grad-CAM overlays — background-bias evidence).
+Pokreće istrenirani FLAT ResNet-50 na test split-u (lokalno, CPU je sasvim dovoljan) i:
+* upisuje results/confusion_flat.png (normalizovano po redovima = recall po klasi),
+* upisuje results/confused_pairs.csv (najčešće zabune van dijagonale),
+* upisuje results/per_class_f1.csv (precision/recall/F1/support po klasi),
+* upisuje results/gradcam.png (mreža Grad-CAM preklopa — dokaz background bias-a).
 
 Run:  python scripts/make_error_analysis.py
 """
@@ -62,7 +62,7 @@ def main() -> int:
                             mode="flat", img_size=224)
     loader = build_loader(test_ds, batch_size=64, is_train=False, num_workers=0)
 
-    # --- inference over the test set ---
+    # --- inference nad test setom ---
     y_true, y_pred = [], []
     with torch.no_grad():
         for i, (x, y) in enumerate(loader):
@@ -75,7 +75,7 @@ def main() -> int:
     y_pred = np.concatenate(y_pred)
     print(f"test images: {len(y_true)}")
 
-    # --- confusion matrix + tables ---
+    # --- confusion matrix + tabele ---
     cm = confusion_matrix(y_true, y_pred, labels=list(range(maps.num_classes)))
     plot_confusion_matrix(cm, names, normalize=True,
                           title="Flat ResNet-50 — 38-class confusion (test, row=recall)",
@@ -86,12 +86,12 @@ def main() -> int:
     per_class_table(res, names).to_csv(OUT / "per_class_f1.csv", index=False)
     print("wrote confusion_flat.png, confused_pairs.csv, per_class_f1.csv")
 
-    # --- Grad-CAM grid (background-bias evidence) ---
+    # --- Grad-CAM mreža (dokaz background bias-a) ---
     import matplotlib.pyplot as plt
 
     correct = np.where(y_true == y_pred)[0]
     wrong = np.where(y_true != y_pred)[0]
-    # 3 correct from distinct classes + up to 3 misclassified
+    # 3 tačna iz različitih klasa + do 3 pogrešno klasifikovana
     picks, seen = [], set()
     for idx in correct:
         c = int(y_true[idx])

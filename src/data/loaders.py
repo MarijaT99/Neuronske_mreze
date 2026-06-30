@@ -1,13 +1,13 @@
-"""DataLoader factory.
+"""Fabrika za DataLoader-e.
 
-Builds train/val/test loaders from the persisted splits, wiring in:
+Gradi train/val/test loader-e iz sačuvanih split-ova, povezujući:
 
-* the right transform pipeline per split (heavy aug for train, minimal for eval),
-* optional ``WeightedRandomSampler`` for imbalance (train only),
-* reproducible shuffling via a seeded generator + ``seed_worker``.
+* odgovarajući transform pipeline po split-u (jak aug za train, minimalan za eval),
+* opcioni ``WeightedRandomSampler`` za disbalans (samo train),
+* reproducibilno mešanje preko seed-ovanog generatora + ``seed_worker``.
 
-``sampler`` and ``shuffle`` are mutually exclusive in PyTorch; when the weighted
-sampler is requested we drop shuffle (the sampler already randomizes order).
+``sampler`` i ``shuffle`` su međusobno isključivi u PyTorch-u; kada se traži
+weighted sampler, izostavljamo shuffle (sampler već randomizuje redosled).
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ def build_loader(
     pin_memory: bool = True,
     drop_last: bool | None = None,
 ) -> DataLoader:
-    """Wrap a dataset in a DataLoader with reproducible behaviour."""
+    """Obavij dataset u DataLoader sa reproducibilnim ponašanjem."""
     sampler = None
     shuffle = False
     if is_train:
@@ -96,7 +96,7 @@ def build_loaders(
     seed: int = 42,
     species_filter: int | None = None,
 ) -> dict[str, DataLoader]:
-    """Build train/val/test loaders in one call. Returns a dict keyed by split."""
+    """Izgradi train/val/test loader-e jednim pozivom. Vraća dict sa ključem po split-u."""
     loaders: dict[str, DataLoader] = {}
     for split in ("train", "val", "test"):
         ds = build_dataset(

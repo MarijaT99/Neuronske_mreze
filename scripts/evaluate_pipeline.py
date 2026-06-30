@@ -1,17 +1,17 @@
-"""End-to-end evaluation of a trained hierarchy on the test split.
+"""End-to-end evaluacija istrenirane hijerarhije na test split-u.
 
-Loads the trained species head + per-species disease heads from an experiment
-directory, assembles a HierarchicalClassifier, runs it on the test set, and
-reports the imbalance-aware end-to-end metrics plus error-propagation accounting.
-Optionally also evaluates a flat model checkpoint for the flat-vs-hierarchical
-comparison that is central to the thesis.
+Učitava istrenirani species head + disease head-ove po species iz direktorijuma
+eksperimenta, sklapa HierarchicalClassifier, pokreće ga na test setu i prikazuje
+end-to-end metrike svesne neravnoteže klasa plus obračun error propagation.
+Opciono evaluira i checkpoint flat modela radi flat-vs-hijerarhijskog poređenja
+koje je centralno za tezu.
 
-Usage::
+Upotreba::
 
     python scripts/evaluate_pipeline.py --config configs/resnet50_hierarchical.yaml
     python scripts/evaluate_pipeline.py --config ... --flat-config configs/resnet50_flat.yaml
 
-Writes metrics.json (+ prints a summary). Designed to run on Kaggle after training.
+Upisuje metrics.json (+ ispisuje rezime). Predviđeno za pokretanje na Kaggle-u nakon treniranja.
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ def _collect_flat(model, loader, device):
 
 
 def build_hierarchy(cfg, maps, exp_dir: Path, device) -> HierarchicalClassifier:
-    """Assemble the trained hierarchy from checkpoints under exp_dir."""
+    """Sklapa istreniranu hijerarhiju iz checkpoint-ova u exp_dir."""
     species_spec = dict(cfg.species_model.to_dict() if hasattr(cfg.species_model, "to_dict")
                         else cfg.species_model)
     species_model = build_model(species_spec, maps.num_species)
@@ -84,7 +84,7 @@ def build_hierarchy(cfg, maps, exp_dir: Path, device) -> HierarchicalClassifier:
     for name, sid in maps.species_to_id.items():
         k = maps.num_diseases_for(sid)
         if k <= 1:
-            continue  # trivial species -> no head
+            continue  # trivijalan species -> nema head-a
         ckpt = exp_dir / "disease" / name / "best.pth"
         if not ckpt.exists():
             raise FileNotFoundError(f"Missing disease checkpoint for {name}: {ckpt}")
@@ -114,7 +114,7 @@ def main() -> int:
 
     out: dict = {}
 
-    # --- hierarchical end-to-end on test --------------------------------
+    # --- hijerarhijski end-to-end na test setu --------------------------
     exp_dir = experiment_out_dir(cfg)
     hc = build_hierarchy(cfg, maps, exp_dir, device)
     test_ds = build_dataset(data_root=data_root, splits_dir=splits_dir, split="test",
@@ -130,7 +130,7 @@ def main() -> int:
     for k, v in hres.summary().items():
         print(f"  {k:42s} {v:.4f}" if isinstance(v, float) else f"  {k:42s} {v}")
 
-    # --- optional flat comparison ---------------------------------------
+    # --- opciono flat poređenje -----------------------------------------
     if args.flat_config:
         fcfg = load_config(resolve_path(args.flat_config))
         fdir = experiment_out_dir(fcfg)

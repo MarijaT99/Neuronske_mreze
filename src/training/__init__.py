@@ -1,4 +1,4 @@
-"""Training package: samplers, losses, trainer."""
+"""Paket za treniranje: sampleri, loss funkcije, trainer."""
 
 from src.training.losses import FocalLoss, build_loss
 from src.training.samplers import compute_class_weights, make_weighted_sampler

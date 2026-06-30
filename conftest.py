@@ -1,9 +1,10 @@
-"""pytest bootstrap — make the repo importable and pin the working directory.
+"""pytest bootstrap — čini repozitorijum uvozivim i fiksira radni direktorijum.
 
-Auto-loaded by pytest. Guarantees that ``import src...`` works and that the
-working directory is the repo root during collection and test runs, regardless
-of where ``pytest`` was launched from (PowerShell's CWD can drift to the parent
-dir under OneDrive). No test dependencies — purely a path/CWD guard.
+pytest ga automatski učitava. Garantuje da ``import src...`` radi i da je radni
+direktorijum koren repozitorijuma tokom prikupljanja i izvršavanja testova, bez
+obzira na to odakle je ``pytest`` pokrenut (CWD u PowerShell-u može odlutati do
+roditeljskog direktorijuma pod OneDrive-om). Bez zavisnosti za testove — čista
+zaštita putanje/CWD-a.
 """
 
 from __future__ import annotations

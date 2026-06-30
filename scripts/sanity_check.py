@@ -1,16 +1,17 @@
-"""Data-pipeline sanity check (must pass before any model code is written).
+"""Sanity check data pipeline-a (mora proći pre nego što se napiše bilo koji kod modela).
 
-Exercises the real pipeline on real images and asserts invariants:
-* datasets build in both modes and load actual image tensors of the right shape;
-* flat labels are in [0, 38) and hierarchical labels are valid per species;
-* heavy train aug changes pixels while eval transform is deterministic;
-* class weights and the weighted sampler are computed from train counts and the
-  sampler actually rebalances class frequencies;
-* a hierarchical per-species subset loads.
+Pokreće stvarni pipeline na stvarnim slikama i proverava invarijante:
+* dataset-i se grade u oba moda i učitavaju stvarne tenzore slika ispravnog oblika;
+* flat label-i su u [0, 38), a hijerarhijski label-i su validni po species;
+* heavy train augmentation menja piksele dok je eval transformacija deterministička;
+* class weights i weighted sampler se računaju iz train brojača, a
+  sampler zaista rebalansira frekvencije klasa;
+* hijerarhijski podskup po species se učitava.
 
-Writes a human-readable report; exits non-zero if any check fails. The report
-defaults to a path OUTSIDE the OneDrive-synced repo (override with --report PATH
-or REPORT_PATH env var) because OneDrive corrupts in-repo runtime read-backs.
+Upisuje izveštaj čitljiv za čoveka; izlazi sa kodom različitim od nule ako bilo koja
+provera padne. Izveštaj se podrazumevano upisuje na putanju IZVAN repozitorijuma
+sinhronizovanog sa OneDrive-om (premosti sa --report PATH ili REPORT_PATH env var)
+jer OneDrive kvari čitanje fajlova generisanih u toku rada unutar repozitorijuma.
 """
 
 from __future__ import annotations
@@ -69,7 +70,7 @@ def main() -> int:
     seed_everything(42)
     maps = LabelMaps.from_json(SPLITS_DIR / "label_maps.json")
 
-    # --- 1. flat dataset loads a real tensor -------------------------------
+    # --- 1. flat dataset učitava stvarni tenzor ----------------------------
     flat_tf = build_eval_transforms(IMG_SIZE)
     flat_ds = PlantVillageDataset(
         data_root=DATA_ROOT, splits_dir=SPLITS_DIR, split="val",
@@ -86,7 +87,7 @@ def main() -> int:
           all(0 <= l < maps.num_classes for l in sample_labels),
           f"min={min(sample_labels)} max={max(sample_labels)}")
 
-    # --- 2. hierarchical dataset ------------------------------------------
+    # --- 2. hijerarhijski dataset -----------------------------------------
     hier_ds = PlantVillageDataset(
         data_root=DATA_ROOT, splits_dir=SPLITS_DIR, split="val",
         mode="hierarchical", transform=flat_tf,
@@ -103,13 +104,13 @@ def main() -> int:
             break
     check("hier: disease_id within species range for all sampled", ok_dis)
 
-    # --- 3. augmentation behaviour ----------------------------------------
+    # --- 3. ponašanje augmentation-a --------------------------------------
     train_tf = build_train_transforms(IMG_SIZE, aug_strength="heavy")
     raw_ds = PlantVillageDataset(
         data_root=DATA_ROOT, splits_dir=SPLITS_DIR, split="train",
         mode="flat", transform=None,
     )
-    raw_img = raw_ds[0][0]  # numpy HWC uint8
+    raw_img = raw_ds[0][0]  # numpy HWC uint8 slika
     a1 = train_tf(image=raw_img)["image"]
     a2 = train_tf(image=raw_img)["image"]
     check("train aug: two draws differ (stochastic)",
@@ -139,14 +140,14 @@ def main() -> int:
           drawn_ratio < orig_ratio / 5,
           f"orig_ratio={orig_ratio:.1f}x -> sampled_ratio={drawn_ratio:.1f}x")
 
-    # --- 5. DataLoader batch (num_workers=0 for Windows safety) ------------
+    # --- 5. DataLoader batch (num_workers=0 radi bezbednosti na Windows-u) -
     loader = build_loader(flat_ds, batch_size=8, is_train=False, num_workers=0)
     bx, by = next(iter(loader))
     check("loader: batch shapes",
           tuple(bx.shape) == (8, 3, IMG_SIZE, IMG_SIZE) and tuple(by.shape) == (8,),
           f"x={tuple(bx.shape)} y={tuple(by.shape)}")
 
-    # --- 6. per-species subset --------------------------------------------
+    # --- 6. podskup po species --------------------------------------------
     tomato_id = maps.species_to_id["Tomato"]
     tomato_ds = build_dataset(
         data_root=DATA_ROOT, splits_dir=SPLITS_DIR, split="val",

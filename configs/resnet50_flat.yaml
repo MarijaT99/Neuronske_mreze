@@ -1,5 +1,5 @@
-# Flat 38-class ResNet-50 (ImageNet pretrained) — the MAIN flat reference.
-# Fine-tune the last stages + head.
+# Flat ResNet-50 sa 38 klasa (ImageNet pretrained) — GLAVNA flat referenca.
+# Fine-tuning poslednjih stage-ova + glave (head).
 
 extends: _base.yaml
 
@@ -14,12 +14,12 @@ model:
   type: resnet50
   pretrained: true
   mode: finetune             # feature_extraction | finetune
-  unfreeze_blocks: 2         # unfreeze last 2 stages + head
+  unfreeze_blocks: 2         # odmrzni poslednja 2 stage-a + glavu (head)
   drop_rate: 0.2
 
 training:
   epochs: 25
-  lr: 1.0e-4                 # lower LR for fine-tuning
+  lr: 1.0e-4                 # niži LR za fine-tuning
   weight_decay: 1.0e-4
   optimizer: adamw
   scheduler: cosine

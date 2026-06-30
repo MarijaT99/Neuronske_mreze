@@ -1,4 +1,4 @@
-"""Evaluation package: metrics (imbalance-aware), hierarchical eval, error analysis."""
+"""Paket za evaluaciju: metrike (osetljive na neuravnoteženost), hijerarhijska evaluacija, analiza grešaka."""
 
 from src.evaluation.error_analysis import (
     find_misclassified,

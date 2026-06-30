@@ -1,9 +1,9 @@
-"""Sanity for error_analysis non-plotting logic (no matplotlib/grad-cam needed).
+"""Sanity za logiku u error_analysis koja ne crta (bez potrebe za matplotlib/grad-cam).
 
-Verifies: module imports despite heavy deps being absent (lazy imports);
-find_misclassified returns the right indices and respects max_per_pair;
-most_confused_pairs ranks off-diagonal confusions; _default_target_layer picks a
-sensible layer for BaselineCNN / TransferModel.
+Proverava: modul se uvozi iako teški dependency-ji nisu prisutni (lazy import-i);
+find_misclassified vraća ispravne indekse i poštuje max_per_pair;
+most_confused_pairs rangira zabune van dijagonale; _default_target_layer bira
+razuman sloj za BaselineCNN / TransferModel.
 """
 
 from __future__ import annotations
@@ -42,11 +42,11 @@ def check(name, cond, detail=""):
 def main() -> int:
     # find_misclassified
     yt = np.array([0, 0, 1, 1, 2, 2, 2])
-    yp = np.array([0, 1, 1, 0, 2, 0, 0])  # wrong at idx 1,3,5,6
+    yp = np.array([0, 1, 1, 0, 2, 0, 0])  # pogrešno na idx 1,3,5,6
     wrong = ea.find_misclassified(yt, yp)
     check("find_misclassified: correct indices", list(wrong) == [1, 3, 5, 6], str(list(wrong)))
     capped = ea.find_misclassified(yt, yp, max_per_pair=1)
-    # pairs: (0,1)@1, (1,0)@3, (2,0)@5, (2,0)@6 -> cap drops the 2nd (2,0)
+    # parovi: (0,1)@1, (1,0)@3, (2,0)@5, (2,0)@6 -> ograničenje izbacuje drugi (2,0)
     check("find_misclassified: max_per_pair caps duplicates",
           list(capped) == [1, 3, 5], str(list(capped)))
 
@@ -58,7 +58,7 @@ def main() -> int:
     check("most_confused_pairs: no diagonal entries",
           not ((pairs["true"] == pairs["predicted"]).any()))
 
-    # target-layer inference
+    # određivanje ciljnog sloja (target layer)
     import torch.nn as nn
     from src.models.baseline_cnn import BaselineCNN
     from src.models.transfer import TransferModel

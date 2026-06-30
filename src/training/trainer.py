@@ -1,22 +1,21 @@
-"""Generic training loop with macro-F1 checkpointing and early stopping.
+"""Generička petlja treniranja sa checkpoint-ovanjem po macro F1 i early stopping-om.
 
-Model-agnostic: works with BaselineCNN and the timm TransferModel (both take a
-batch of images and return class logits). Designed for the **flat** task and for
-training an individual head in the hierarchy (species head, or a per-species
-disease head) — the hierarchy is assembled at eval time from separately trained
-heads.
+Nezavisna od modela: radi sa BaselineCNN i timm TransferModel-om (oba primaju
+batch slika i vraćaju logits klasa). Namenjena je za **flat** zadatak i za
+treniranje pojedinačnog head-a u hijerarhiji (species head, ili disease head po
+species-u) — hijerarhija se sklapa u fazi evaluacije od zasebno treniranih head-ova.
 
-Key project rules baked in here:
+Ključna pravila projekta ugrađena ovde:
 
-* **Checkpoint / early-stop on validation macro F1, not loss.** (Imbalanced data:
-  loss and accuracy both over-credit majority classes.)
-* Every epoch logs the full imbalance-aware metric suite (macro/weighted F1,
-  balanced accuracy, accuracy-as-secondary) plus train/val loss.
-* Reproducible: seeding is the caller's responsibility (``seed_everything``); the
-  trainer is deterministic given seeded loaders.
+* **Checkpoint / early-stop po validacionom macro F1, ne po loss-u.** (Neuravnoteženi
+  podaci: i loss i accuracy precenjuju većinske klase.)
+* Svaki epoch loguje kompletan skup metrika osetljiv na neuravnoteženost
+  (macro/weighted F1, balanced accuracy, accuracy kao sekundarno) i train/val loss.
+* Reproducibilno: postavljanje seed-a je odgovornost pozivaoca (``seed_everything``);
+  trainer je determinističan kada su loaderi seed-ovani.
 
-The trainer is intentionally framework-light (no Lightning) so it runs cleanly in
-a Kaggle notebook.
+Trainer je namerno lagan u pogledu framework-a (bez Lightning-a) kako bi čisto
+radio u Kaggle notebook-u.
 """
 
 from __future__ import annotations
@@ -36,17 +35,17 @@ from src.evaluation.metrics import compute_metrics
 
 @dataclass
 class TrainConfig:
-    """Training hyperparameters (usually populated from a YAML config)."""
+    """Hiperparametri treniranja (obično se popunjavaju iz YAML config-a)."""
 
     epochs: int = 30
     lr: float = 1e-3
     weight_decay: float = 1e-4
     optimizer: str = "adamw"           # adamw | adam | sgd
     scheduler: str = "cosine"          # cosine | plateau | none
-    early_stopping_patience: int = 7   # epochs without macro-F1 improvement
+    early_stopping_patience: int = 7   # epoch-ovi bez poboljšanja macro F1
     grad_clip: float | None = None
-    amp: bool = True                   # mixed precision (CUDA only)
-    monitor: str = "macro_f1"          # checkpoint/early-stop metric (higher=better)
+    amp: bool = True                   # mixed precision (samo CUDA)
+    monitor: str = "macro_f1"          # metrika za checkpoint/early-stop (više=bolje)
 
 
 @dataclass
@@ -73,7 +72,7 @@ def _build_scheduler(optimizer, cfg: TrainConfig):
     if cfg.scheduler == "cosine":
         return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.epochs)
     if cfg.scheduler == "plateau":
-        # maximize macro F1
+        # maksimizuj macro F1
         return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="max", patience=3)
     if cfg.scheduler == "none":
         return None
@@ -81,29 +80,30 @@ def _build_scheduler(optimizer, cfg: TrainConfig):
 
 
 class Trainer:
-    """Train one classifier, checkpointing the best epoch by validation macro F1.
+    """Treniraj jedan klasifikator i checkpoint-uj najbolji epoch po validacionom macro F1.
 
-    Parameters
-    ----------
+    Parametri
+    ---------
     model:
-        A module mapping (B,3,H,W) -> (B,num_classes) logits.
+        Modul koji mapira (B,3,H,W) -> (B,num_classes) logits.
     train_loader, val_loader:
-        DataLoaders yielding (image, label). For hierarchical heads, pass loaders
-        whose label is the relevant target (species_id or disease_id_in_species).
+        DataLoaderi koji vraćaju (image, label). Za hijerarhijske head-ove,
+        prosledi loadere čija je label odgovarajući cilj (species_id ili
+        disease_id_in_species).
     criterion:
-        Loss module (from :func:`src.training.losses.build_loss`).
+        Loss modul (iz :func:`src.training.losses.build_loss`).
     cfg:
         :class:`TrainConfig`.
     num_classes:
-        Number of classes (for stable per-class metrics).
+        Broj klasa (za stabilne metrike po klasi).
     device:
-        torch device; defaults to cuda if available.
+        torch device; podrazumevano cuda ako je dostupna.
     out_dir:
-        Where to write ``best.pth`` and ``history.json`` (optional).
+        Gde se upisuju ``best.pth`` i ``history.json`` (opciono).
     label_index:
-        Index of the label in each batch tuple. 0 means (img, label); for a
-        hierarchical species head use the species position, etc. Default: the
-        batch is (image, label) so the label is element 1.
+        Indeks label-a u svakom batch tuple-u. 0 znači (img, label); za
+        hijerarhijski species head koristi poziciju species-a, itd. Podrazumevano:
+        batch je (image, label) pa je label element 1.
     """
 
     def __init__(
@@ -146,7 +146,7 @@ class Trainer:
 
     # ------------------------------------------------------------------ #
     def _unpack(self, batch):
-        """Return (images, labels) from a batch tuple using label_index."""
+        """Vrati (images, labels) iz batch tuple-a koristeći label_index."""
         images = batch[0].to(self.device, non_blocking=True)
         labels = batch[self.label_index].to(self.device, non_blocking=True)
         return images, labels
@@ -212,7 +212,7 @@ class Trainer:
             self.history.append(log)
             self._log_epoch(log, time.time() - t0)
 
-            # Checkpoint best by macro F1 (or configured monitor).
+            # Checkpoint-uj najbolji po macro F1 (ili konfigurisanom monitor-u).
             if score > self.best_score:
                 self.best_score = score
                 self.best_epoch = epoch

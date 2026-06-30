@@ -1,9 +1,9 @@
-"""Create the persisted, stratified train/val/test split.
+"""Pravi trajni, stratified train/val/test split.
 
-Run once. The resulting CSVs under ``--out-dir`` are versioned and must not be
-regenerated for individual experiments — every model reads the same split.
+Pokreni jednom. Rezultujući CSV fajlovi u ``--out-dir`` su verzionisani i ne smeju
+se ponovo generisati za pojedinačne eksperimente — svaki model čita isti split.
 
-Example::
+Primer::
 
     python scripts/prepare_splits.py \
         --data-root "data/raw/plantvillage dataset/color" \
@@ -17,7 +17,7 @@ import argparse
 import sys
 from pathlib import Path
 
-# Make ``src`` importable when run as a plain script.
+# Omogući uvoz ``src`` kada se pokreće kao običan skript.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.data.splits import make_splits, split_summary  # noqa: E402

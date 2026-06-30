@@ -1,11 +1,11 @@
-"""Train the flat 38-class baseline (or any flat classifier).
+"""Trenira flat baseline sa 38 klasa (ili bilo koji flat klasifikator).
 
-Usage (from repo root, or via run.ps1 which pins the CWD)::
+Upotreba (iz repo root-a, ili preko run.ps1 koji fiksira CWD)::
 
     python scripts/train_flat.py --config configs/resnet50_flat.yaml
     .\\run.ps1 scripts\\train_flat.py --config configs\\baseline_cnn_flat.yaml
 
-Checkpoints best.pth (by val macro F1) + history.json + config.yaml under
+Čuva checkpoint best.pth (po val macro F1) + history.json + config.yaml u
 experiments/<name>/.
 """
 

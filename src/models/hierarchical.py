@@ -1,23 +1,23 @@
-"""Hierarchical classifier container.
+"""Kontejner hijerarhijskog klasifikatora.
 
-Holds one **species** classifier (L1, 14 classes) plus a dict of per-species
-**disease** classifiers (L2). At inference the species model picks a species, and
-the corresponding disease head predicts the disease *within* that species.
+Sadrži jedan **species** klasifikator (L1, 14 klasa) i dict **disease**
+klasifikatora po species-u (L2). Tokom inferencije species model bira species, a
+odgovarajući disease head predviđa bolest *unutar* tog species-a.
 
-This mirrors the project's two-level scheme and makes **error propagation**
-explicit: if the species head is wrong, the disease prediction is taken from the
-wrong head and is (almost always) wrong too. The end-to-end (species, disease)
-prediction is what the hierarchical evaluation scores.
+Ovo preslikava dvonivovsku šemu projekta i čini **error propagation**
+eksplicitnim: ako species head pogreši, disease predikcija se uzima iz pogrešnog
+head-a i (gotovo uvek) je takođe pogrešna. End-to-end (species, disease)
+predikcija je ono što hijerarhijska evaluacija ocenjuje.
 
-Design notes
-------------
-* Species with a single disease class (Blueberry, Orange, Raspberry, Soybean,
-  Squash — all "healthy") need no real disease head; the container returns their
-  only disease id (0) directly. ``trivial_species`` records these.
-* This is a container, not a single ``nn.Module`` forward graph: the heads are
-  trained independently (simpler, matches the plan) and combined only at eval.
-  Each head is still an ``nn.Module`` and is registered so ``.to(device)``,
-  ``state_dict()`` etc. work on the whole thing.
+Napomene o dizajnu
+------------------
+* Species sa samo jednom disease klasom (Blueberry, Orange, Raspberry, Soybean,
+  Squash — svi "healthy") ne zahtevaju pravi disease head; kontejner direktno
+  vraća njihov jedini disease id (0). ``trivial_species`` ih beleži.
+* Ovo je kontejner, a ne jedinstveni ``nn.Module`` forward graf: head-ovi se
+  treniraju nezavisno (jednostavnije, u skladu sa planom) i kombinuju tek pri
+  evaluaciji. Svaki head je i dalje ``nn.Module`` i registrovan je, tako da
+  ``.to(device)``, ``state_dict()`` itd. rade nad celinom.
 """
 
 from __future__ import annotations
@@ -31,26 +31,26 @@ import torch.nn.functional as F
 
 @dataclass
 class HierarchicalPrediction:
-    """Batched hierarchical prediction results."""
+    """Rezultati hijerarhijske predikcije za batch."""
 
-    species_id: torch.Tensor          # (B,) predicted species
-    disease_id_in_species: torch.Tensor  # (B,) predicted disease, local to species
+    species_id: torch.Tensor          # (B,) predviđeni species
+    disease_id_in_species: torch.Tensor  # (B,) predviđena bolest, lokalna za species
     species_logits: torch.Tensor      # (B, num_species)
 
 
 class HierarchicalClassifier(nn.Module):
-    """Container: a species model + per-species disease heads.
+    """Kontejner: species model + disease head-ovi po species-u.
 
     Parameters
     ----------
     species_model:
-        L1 classifier producing ``num_species`` logits.
+        L1 klasifikator koji proizvodi ``num_species`` logits-a.
     disease_models:
-        Mapping ``species_id -> nn.Module`` (each producing that species'
-        disease logits). Species absent from the dict are treated as trivial
-        (single disease class, always predicted as id 0).
+        Mapiranje ``species_id -> nn.Module`` (svaki proizvodi disease logits-e
+        tog species-a). Species-i kojih nema u dict-u tretiraju se kao trivijalni
+        (jedna disease klasa, uvek predviđena kao id 0).
     num_species:
-        Total number of species (for validation / bookkeeping).
+        Ukupan broj species-a (za validaciju / vođenje evidencije).
     """
 
     def __init__(
@@ -62,7 +62,7 @@ class HierarchicalClassifier(nn.Module):
     ):
         super().__init__()
         self.species_model = species_model
-        # ModuleDict keys must be strings.
+        # Ključevi ModuleDict-a moraju biti string-ovi.
         self.disease_models = nn.ModuleDict({str(k): m for k, m in disease_models.items()})
         self.num_species = num_species
         self.trivial_species = sorted(
@@ -79,11 +79,12 @@ class HierarchicalClassifier(nn.Module):
     # ------------------------------------------------------------------ #
     @torch.no_grad()
     def predict(self, x: torch.Tensor) -> HierarchicalPrediction:
-        """End-to-end prediction with error propagation built in.
+        """End-to-end predikcija sa ugrađenim error propagation-om.
 
-        Species is predicted first; each sample's disease is then predicted by
-        the head of its *predicted* species (so species errors propagate).
-        Samples whose predicted species is trivial get disease id 0.
+        Prvo se predviđa species; bolest svakog uzorka zatim predviđa head
+        njegovog *predviđenog* species-a (tako da se greške u species-u
+        propagiraju). Uzorci čiji je predviđeni species trivijalan dobijaju
+        disease id 0.
         """
         self.eval()
         species_logits = self.species_model(x)
@@ -93,7 +94,7 @@ class HierarchicalClassifier(nn.Module):
         for sid in species_pred.unique().tolist():
             mask = species_pred == sid
             if not self.has_disease_head(sid):
-                continue  # trivial species -> disease id 0 (already set)
+                continue  # trivijalan species -> disease id 0 (već postavljen)
             head = self.disease_head(sid)
             logits = head(x[mask])
             disease_pred[mask] = logits.argmax(dim=1)

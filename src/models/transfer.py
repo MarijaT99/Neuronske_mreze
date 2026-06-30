@@ -1,16 +1,16 @@
-"""Transfer-learning model wrappers (ResNet-50, EfficientNet-B0).
+"""Wrapper-i za modele zasnovane na transfer learning-u (ResNet-50, EfficientNet-B0).
 
-Both backbones are created through ``timm`` with a fresh classification head of
-``num_classes`` outputs. Two training regimes are supported:
+Oba backbone-a se kreiraju kroz ``timm`` sa novim klasifikacionim head-om sa
+``num_classes`` izlaza. Podržana su dva režima treniranja:
 
-* ``mode="feature_extraction"`` — freeze the whole backbone, train only the head.
-* ``mode="finetune"``           — unfreeze the last ``unfreeze_blocks`` stages
-                                  (plus the head); the rest stays frozen. Pass
-                                  ``unfreeze_blocks=-1`` to unfreeze everything.
+* ``mode="feature_extraction"`` — zamrzni ceo backbone, treniraj samo head.
+* ``mode="finetune"``           — odmrzni poslednjih ``unfreeze_blocks`` stage-ova
+                                  (uz head); ostatak ostaje zamrznut. Prosledi
+                                  ``unfreeze_blocks=-1`` da se odmrzne sve.
 
-Using timm's ``features_only=False`` default with ``num_classes`` reset gives a
-single tensor of logits, matching the baseline CNN's interface so the Trainer is
-model-agnostic.
+Korišćenje timm-ovog podrazumevanog ``features_only=False`` uz resetovan
+``num_classes`` daje jedan tensor logits-a, što odgovara interfejsu baseline CNN-a
+tako da je Trainer nezavisan od modela.
 """
 
 from __future__ import annotations
@@ -32,12 +32,13 @@ def _set_requires_grad(module: nn.Module, flag: bool) -> None:
 
 
 def _local_pretrained_file(timm_name: str) -> str | None:
-    """Return a local pretrained-weights file for ``timm_name`` if available.
+    """Vraća lokalni fajl sa pretrained težinama za ``timm_name`` ako postoji.
 
-    Set ``PDH_PRETRAINED_DIR`` to a folder holding the timm safetensors when the
-    runtime has no internet (e.g. Kaggle): we then load the ImageNet weights from
-    disk instead of downloading from HuggingFace. Files are matched by the model's
-    default hub tag (``resnet50.a1_in1k.safetensors``), then a couple of fallbacks.
+    Postavi ``PDH_PRETRAINED_DIR`` na folder koji sadrži timm safetensors fajlove
+    kada runtime nema internet (npr. Kaggle): tada se ImageNet težine učitavaju sa
+    diska umesto preuzimanja sa HuggingFace-a. Fajlovi se traže po podrazumevanom
+    hub tag-u modela (``resnet50.a1_in1k.safetensors``), pa zatim po nekoliko
+    rezervnih opcija.
     """
     d = os.environ.get("PDH_PRETRAINED_DIR")
     if not d or not os.path.isdir(d):
@@ -59,23 +60,23 @@ def _local_pretrained_file(timm_name: str) -> str | None:
 
 
 class TransferModel(nn.Module):
-    """A timm backbone + reset head, with feature-extract / finetune regimes.
+    """timm backbone + resetovan head, sa feature-extraction / finetune režimima.
 
     Parameters
     ----------
     arch:
-        One of ``SUPPORTED`` ("resnet50", "efficientnet_b0").
+        Jedan od ``SUPPORTED`` ("resnet50", "efficientnet_b0").
     num_classes:
-        Output logits.
+        Izlazni logits-i.
     pretrained:
-        Load ImageNet-pretrained weights (True for transfer learning).
+        Učitaj ImageNet pretrained težine (True za transfer learning).
     mode:
-        "feature_extraction" or "finetune".
+        "feature_extraction" ili "finetune".
     unfreeze_blocks:
-        In finetune mode, how many trailing backbone stages to unfreeze
-        (-1 = all). Ignored in feature_extraction mode.
+        U finetune režimu, koliko poslednjih backbone stage-ova odmrznuti
+        (-1 = sve). Ignoriše se u feature_extraction režimu.
     drop_rate:
-        Dropout before the classifier (passed to timm).
+        Dropout pre klasifikatora (prosleđuje se timm-u).
     """
 
     def __init__(
@@ -106,20 +107,20 @@ class TransferModel(nn.Module):
         if pretrained:
             local = _local_pretrained_file(SUPPORTED[arch])
             if local is not None:
-                # Load ImageNet weights from disk (offline); timm adapts the head.
+                # Učitaj ImageNet težine sa diska (offline); timm prilagođava head.
                 create_kwargs["pretrained_cfg_overlay"] = dict(file=local)
         self.backbone = timm.create_model(SUPPORTED[arch], **create_kwargs)
         self._configure_trainable(mode, unfreeze_blocks)
 
     # ------------------------------------------------------------------ #
     def _classifier_module(self) -> nn.Module:
-        """Return the head module (timm exposes it via get_classifier())."""
+        """Vraća head modul (timm ga izlaže preko get_classifier())."""
         return self.backbone.get_classifier()
 
     def _stage_modules(self) -> list[nn.Module]:
-        """Ordered list of backbone stages for selective unfreezing.
+        """Uređena lista backbone stage-ova za selektivno odmrzavanje.
 
-        ResNet: layer1..layer4. EfficientNet: the blocks Sequential children.
+        ResNet: layer1..layer4. EfficientNet: deca blocks Sequential-a.
         """
         if self.arch == "resnet50":
             return [
@@ -128,7 +129,7 @@ class TransferModel(nn.Module):
                 self.backbone.layer3,
                 self.backbone.layer4,
             ]
-        # efficientnet_b0: timm exposes .blocks as a Sequential of stages
+        # efficientnet_b0: timm izlaže .blocks kao Sequential stage-ova
         return list(self.backbone.blocks.children())
 
     def _configure_trainable(self, mode: str, unfreeze_blocks: int) -> None:
@@ -142,7 +143,7 @@ class TransferModel(nn.Module):
             _set_requires_grad(self.backbone, True)
             return
 
-        # Freeze everything, then unfreeze the head + last N stages.
+        # Zamrzni sve, pa odmrzni head + poslednjih N stage-ova.
         _set_requires_grad(self.backbone, False)
         _set_requires_grad(self._classifier_module(), True)
         stages = self._stage_modules()
@@ -164,5 +165,5 @@ class TransferModel(nn.Module):
 
 
 def build_transfer_model(arch: str, num_classes: int, **kwargs) -> TransferModel:
-    """Convenience factory mirroring config-driven construction."""
+    """Praktičan factory koji preslikava config-driven konstrukciju."""
     return TransferModel(arch, num_classes, **kwargs)

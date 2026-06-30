@@ -1,14 +1,14 @@
-"""Generate paper figures that need only the logged JSON (no model inference).
+"""Generiše figure za rad kojima je potreban samo zabeleženi JSON (bez inference modela).
 
-Reads experiments/**/history.json and experiments/resnet50_hierarchical/test_metrics.json
-and writes PNGs into results/. Confusion matrices / Grad-CAM (which need running the
-models on the test set) are produced separately.
+Čita experiments/**/history.json i experiments/resnet50_hierarchical/test_metrics.json
+i upisuje PNG slike u results/. Confusion matrix / Grad-CAM (za koje je potrebno pokretanje
+modela na test setu) generišu se zasebno.
 
 Run:  python scripts/make_figures.py
 """
 from __future__ import annotations
 
-import _bootstrap  # noqa: F401  (repo root on sys.path + CWD pinned)
+import _bootstrap  # noqa: F401  (koren repozitorijuma na sys.path + fiksiran CWD)
 import json
 from pathlib import Path
 
@@ -27,7 +27,7 @@ def load_history(path: Path) -> dict:
 
 
 def fig_training_curves() -> None:
-    """Val macro F1 per epoch for the main models + loss for resnet50_flat."""
+    """Val macro F1 po epoch-u za glavne modele + loss za resnet50_flat."""
     models = {
         "Baseline CNN (flat)": EXP / "baseline_cnn_flat/history.json",
         "ResNet-50 (flat)": EXP / "resnet50_flat/history.json",
@@ -46,7 +46,7 @@ def fig_training_curves() -> None:
     ax1.legend(fontsize=8)
     ax1.set_ylim(0, 1.02)
 
-    # train/val loss for the main flat reference
+    # train/val loss za glavnu flat referencu
     h = load_history(EXP / "resnet50_flat/history.json")["history"]
     ep = [e["epoch"] for e in h]
     ax2.plot(ep, [e["train_loss"] for e in h], marker="o", ms=3, label="train loss")
@@ -61,7 +61,7 @@ def fig_training_curves() -> None:
 
 
 def fig_flat_vs_hier() -> None:
-    """Grouped bars: flat vs hierarchical on the test set (4 metrics)."""
+    """Grupisani stubići: flat naspram hijerarhijskog na test setu (4 metrike)."""
     tm = json.loads((EXP / "resnet50_hierarchical/test_metrics.json").read_text(encoding="utf-8"))
     flat = tm["flat"]
     hier = tm["hierarchical"]
@@ -97,7 +97,7 @@ def fig_flat_vs_hier() -> None:
 
 
 def fig_disease_heads() -> None:
-    """Per-species disease-head best val macro F1 (sorted)."""
+    """Najbolji val macro F1 disease head-a po species (sortirano)."""
     ddir = EXP / "resnet50_hierarchical/disease"
     rows = []
     for sub in sorted(ddir.iterdir()):
@@ -125,7 +125,7 @@ def fig_disease_heads() -> None:
 
 
 def fig_error_propagation() -> None:
-    """Where do the hierarchy's end-to-end errors come from?"""
+    """Odakle potiču end-to-end greške hijerarhije?"""
     tm = json.loads((EXP / "resnet50_hierarchical/test_metrics.json").read_text(encoding="utf-8"))
     h = tm["hierarchical"]
     e_species = h["errors_from_species"]

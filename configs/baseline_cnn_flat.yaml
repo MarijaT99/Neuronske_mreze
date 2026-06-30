@@ -1,5 +1,5 @@
-# Flat 38-class baseline — simple CNN from scratch.
-# The "from scratch" reference point.
+# Flat baseline sa 38 klasa — jednostavna CNN trenirana from scratch.
+# Referentna tačka za "from scratch" pristup.
 
 extends: _base.yaml
 
@@ -7,7 +7,7 @@ experiment:
   name: baseline_cnn_flat
 
 task:
-  type: flat                 # flat 38-class classification
+  type: flat                 # flat klasifikacija sa 38 klasa
   num_classes: 38
 
 model:
@@ -16,7 +16,7 @@ model:
 
 training:
   epochs: 40
-  lr: 1.0e-3                 # higher LR for from-scratch training
+  lr: 1.0e-3                 # viši LR za from-scratch treniranje
   optimizer: adamw
   scheduler: cosine
 

@@ -1,17 +1,18 @@
-"""Error analysis: confusion matrices, misclassification mining, and Grad-CAM.
+"""Analiza grešaka: confusion matrice, izdvajanje pogrešnih klasifikacija i Grad-CAM.
 
-Two purposes:
+Dve svrhe:
 
-1. **Confusion matrices** (per level + final 38-class) to see *which* classes are
-   confused — far more informative than a single accuracy number on imbalanced data.
-2. **Grad-CAM** on misclassified examples to expose the known PlantVillage
-   **background-bias**: if the heatmap lights up the uniform background instead of
-   the lesion, the model learned a shortcut. This is the paper's key qualitative
-   evidence and a stated limitation.
+1. **Confusion matrice** (po nivou + finalna 38-class) da bi se videlo *koje* se
+   klase mešaju — daleko informativnije od jednog broja za accuracy na
+   neuravnoteženim podacima.
+2. **Grad-CAM** na pogrešno klasifikovanim primerima da bi se izložio poznati
+   PlantVillage **background bias**: ako heatmap osvetli uniformnu pozadinu umesto
+   lezije, model je naučio prečicu. Ovo je ključni kvalitativni dokaz rada i
+   navedeno ograničenje.
 
-Heavy deps (matplotlib, seaborn, pytorch_grad_cam) are imported lazily inside the
-functions so importing this module is cheap and works on machines that only have
-the data/eval stack (these run on Kaggle).
+Teške zavisnosti (matplotlib, seaborn, pytorch_grad_cam) uvoze se lenjo unutar
+funkcija kako bi import ovog modula bio jeftin i radio na mašinama koje imaju samo
+data/eval stack (ovo se izvršava na Kaggle-u).
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ import numpy as np
 
 
 # --------------------------------------------------------------------------- #
-# Confusion matrices
+# Confusion matrice
 # --------------------------------------------------------------------------- #
 def plot_confusion_matrix(
     cm: np.ndarray,
@@ -34,10 +35,10 @@ def plot_confusion_matrix(
     save_path: str | Path | None = None,
     annotate: bool | None = None,
 ):
-    """Render a confusion matrix heatmap. Returns the matplotlib Figure.
+    """Iscrtaj heatmap confusion matrice. Vraća matplotlib Figure.
 
-    ``normalize`` divides each row by its support (true-class normalization) so
-    the diagonal reads as per-class recall — the right view under imbalance.
+    ``normalize`` deli svaki red njegovim support-om (normalizacija po tačnoj klasi)
+    tako da se dijagonala čita kao recall po klasi — pravi prikaz kod neuravnoteženosti.
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -48,7 +49,7 @@ def plot_confusion_matrix(
         cm = np.divide(cm, row_sums, out=np.zeros_like(cm), where=row_sums != 0)
 
     if annotate is None:
-        annotate = len(class_names) <= 20  # avoid clutter for the 38-class matrix
+        annotate = len(class_names) <= 20  # izbegni gužvu za 38-class matricu
 
     fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(
@@ -75,7 +76,7 @@ def most_confused_pairs(
     *,
     top_k: int = 15,
 ):
-    """Return the top off-diagonal (true, pred, count) confusions as a DataFrame."""
+    """Vrati najčešće vandijagonalne (true, pred, count) zabune kao DataFrame."""
     import pandas as pd
 
     cm = np.asarray(cm)
@@ -90,7 +91,7 @@ def most_confused_pairs(
 
 
 # --------------------------------------------------------------------------- #
-# Misclassification mining
+# Izdvajanje pogrešnih klasifikacija
 # --------------------------------------------------------------------------- #
 def find_misclassified(
     y_true: np.ndarray,
@@ -98,7 +99,7 @@ def find_misclassified(
     *,
     max_per_pair: int | None = None,
 ) -> np.ndarray:
-    """Indices where prediction != truth (optionally capped per (true,pred) pair)."""
+    """Indeksi gde je predikcija != tačna vrednost (opciono ograničeno po (true,pred) paru)."""
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
     wrong = np.where(y_true != y_pred)[0]
@@ -118,8 +119,8 @@ def find_misclassified(
 # Grad-CAM
 # --------------------------------------------------------------------------- #
 def _default_target_layer(model):
-    """Best-effort last-conv layer for the supported architectures."""
-    # TransferModel wraps a timm backbone.
+    """Poslednji konvolucioni sloj po najboljoj proceni za podržane arhitekture."""
+    # TransferModel obavija timm backbone.
     backbone = getattr(model, "backbone", model)
     # ResNet: layer4. EfficientNet (timm): conv_head / blocks[-1].
     if hasattr(backbone, "layer4"):
@@ -128,7 +129,7 @@ def _default_target_layer(model):
         return backbone.conv_head
     if hasattr(backbone, "blocks"):
         return backbone.blocks[-1]
-    # BaselineCNN: last conv block.
+    # BaselineCNN: poslednji konvolucioni blok.
     if hasattr(model, "features"):
         return model.features[-1]
     raise ValueError("Could not infer a Grad-CAM target layer; pass one explicitly.")
@@ -143,10 +144,10 @@ def gradcam_overlay(
     mean=(0.485, 0.456, 0.406),
     std=(0.229, 0.224, 0.225),
 ):
-    """Compute a Grad-CAM overlay for a single (C,H,W) normalized image tensor.
+    """Izračunaj Grad-CAM overlay za jedan normalizovan (C,H,W) image tensor.
 
-    Returns ``(overlay_rgb, cam)`` where overlay_rgb is a HWC float image in
-    [0,1] with the heatmap blended over the de-normalized input.
+    Vraća ``(overlay_rgb, cam)`` gde je overlay_rgb HWC float slika u [0,1] sa
+    heatmap-om stopljenim preko de-normalizovanog ulaza.
     """
     import torch
     from pytorch_grad_cam import GradCAM
@@ -166,7 +167,7 @@ def gradcam_overlay(
     cam = GradCAM(model=model, target_layers=[target_layer])
     grayscale_cam = cam(input_tensor=input_tensor, targets=targets)[0]
 
-    # De-normalize the input for display.
+    # De-normalizuj ulaz radi prikaza.
     mean_t = torch.tensor(mean).view(3, 1, 1)
     std_t = torch.tensor(std).view(3, 1, 1)
     rgb = (image_tensor.cpu() * std_t + mean_t).clamp(0, 1).permute(1, 2, 0).numpy()

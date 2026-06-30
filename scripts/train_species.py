@@ -1,9 +1,9 @@
-"""Train the species (L1) classifier for the hierarchy — 14 classes.
+"""Trenira species (L1) klasifikator za hijerarhiju — 14 klasa.
 
-Uses the hierarchical dataset mode and trains on species_id (label_index=1, the
-species position in the (image, species_id, disease_id) tuple).
+Koristi hijerarhijski mod dataset-a i trenira na species_id (label_index=1,
+pozicija species u (image, species_id, disease_id) tuple-u).
 
-Usage::
+Upotreba::
 
     python scripts/train_species.py --config configs/resnet50_hierarchical.yaml
 """
@@ -44,7 +44,7 @@ def main() -> int:
     maps = load_maps(cfg)
     num_species = maps.num_species
 
-    # Hierarchical batches are (image, species_id, disease_id); species is index 1.
+    # Hijerarhijski batch-evi su (image, species_id, disease_id); species je indeks 1.
     train_loader, val_loader, train_ds, _ = make_loaders_flat(cfg, mode="hierarchical")
 
     species_labels = train_ds.df["species_id"].to_numpy()

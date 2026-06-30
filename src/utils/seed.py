@@ -1,9 +1,9 @@
-"""Global seeding for reproducibility.
+"""Globalno postavljanje seed-a radi reproducibilnosti.
 
-Sets seeds for ``random``, ``numpy`` and ``torch`` (CPU + CUDA) and enables
-deterministic cuDNN. Import-safe: ``torch`` is imported lazily so this module
-can be used in environments where torch is not installed (e.g. for the local
-data-split tooling).
+Postavlja seed za ``random``, ``numpy`` i ``torch`` (CPU + CUDA) i uključuje
+deterministički cuDNN. Bezbedno za import: ``torch`` se učitava lenjo, pa se ovaj
+modul može koristiti i u okruženjima gde torch nije instaliran (npr. za lokalne
+alate za split podataka).
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import numpy as np
 
 
 def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
-    """Seed all RNGs. Returns the seed for convenience/logging."""
+    """Postavi seed za sve RNG-ove. Vraća seed radi praktičnosti/logovanja."""
     os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -25,11 +25,12 @@ def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
 
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
-        # Deterministic cuDNN guarantees bit-reproducible convolutions but forces
-        # slow algorithms (ResNet-50 is ~5-10x slower on a T4). Set the env var
-        # PDH_CUDNN_BENCHMARK=1 to trade that exact determinism for cuDNN's fast
-        # autotuned kernels — seeds still fix weights, data order and augmentation,
-        # so runs stay reproducible up to minor conv-algorithm numerical noise.
+        # Deterministički cuDNN garantuje bit-reproducibilne konvolucije, ali nameće
+        # spore algoritme (ResNet-50 je ~5-10x sporiji na T4). Postavi env promenljivu
+        # PDH_CUDNN_BENCHMARK=1 da tu strogu determinističnost zameniš za brze,
+        # autotuned cuDNN kernele — seed i dalje fiksira težine, redosled podataka i
+        # augmentation, pa runovi ostaju reproducibilni do minornog numeričkog šuma
+        # konvolucionog algoritma.
         if deterministic and not os.environ.get("PDH_CUDNN_BENCHMARK"):
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
@@ -37,17 +38,17 @@ def seed_everything(seed: int = 42, *, deterministic: bool = True) -> int:
             torch.backends.cudnn.deterministic = False
             torch.backends.cudnn.benchmark = True
     except ImportError:
-        # torch not present (e.g. local split tooling) — numpy/random still seeded.
+        # torch nije prisutan (npr. lokalni alati za split) — numpy/random su i dalje seed-ovani.
         pass
 
     return seed
 
 
 def seed_worker(worker_id: int) -> None:
-    """DataLoader ``worker_init_fn`` — gives each worker a distinct, seeded RNG.
+    """DataLoader ``worker_init_fn`` — daje svakom worker-u zaseban, seed-ovan RNG.
 
-    Use together with a seeded ``generator`` passed to ``DataLoader`` for fully
-    reproducible shuffling/augmentation across workers.
+    Koristi zajedno sa seed-ovanim ``generator``-om prosleđenim ``DataLoader``-u za
+    potpuno reproducibilno mešanje/augmentation kroz sve worker-e.
     """
     import torch
 
@@ -57,7 +58,7 @@ def seed_worker(worker_id: int) -> None:
 
 
 def make_generator(seed: int = 42):
-    """Return a seeded ``torch.Generator`` for DataLoader shuffling."""
+    """Vrati seed-ovan ``torch.Generator`` za mešanje u DataLoader-u."""
     import torch
 
     g = torch.Generator()

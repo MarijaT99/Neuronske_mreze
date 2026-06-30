@@ -1,16 +1,16 @@
-"""Model sanity check — forward passes + freezing/regime invariants.
+"""Sanity check modela — forward prolazi + invarijante zamrzavanja/režima.
 
-Runs on CPU with random tensors (no data, no pretrained download) so it is fast
-and offline. Verifies:
-* BaselineCNN outputs (B, num_classes) for flat and per-species head sizes;
-* TransferModel (resnet50, efficientnet_b0) outputs the right shape;
-* feature_extraction freezes the backbone (only head trainable);
-* finetune with unfreeze_blocks unfreezes head + N trailing stages only;
-* build_model factory dispatches all types;
-* HierarchicalClassifier.predict returns valid species/disease ids and routes
-  trivial species to disease id 0 (error propagation path exercised).
+Pokreće se na CPU-u sa nasumičnim tenzorima (bez podataka, bez preuzimanja pretrained
+težina) pa je brz i offline. Proverava:
+* BaselineCNN daje izlaz (B, num_classes) za flat i veličine head-a po species;
+* TransferModel (resnet50, efficientnet_b0) daje izlaz ispravnog oblika;
+* feature_extraction zamrzava backbone (samo je head trainable);
+* fine-tuning sa unfreeze_blocks odmrzava head + samo N završnih stadijuma;
+* build_model factory dispečuje sve tipove;
+* HierarchicalClassifier.predict vraća validne species/disease id-jeve i usmerava
+  trivijalne species na disease id 0 (proverava se putanja error propagation-a).
 
-Writes a report to $TEMP; exits non-zero on any failure.
+Upisuje izveštaj u $TEMP; izlazi sa kodom različitim od nule pri bilo kom padu.
 """
 
 from __future__ import annotations
@@ -63,14 +63,14 @@ def main() -> int:
     params = sum(p.numel() for p in m.parameters())
     check("baseline: param count modest (<6M)", params < 6_000_000, f"{params:,} params")
 
-    m_head = BaselineCNN(num_classes=10)  # e.g. Tomato disease head
+    m_head = BaselineCNN(num_classes=10)  # npr. disease head za Tomato
     check("baseline: per-species head (2,10)", tuple(m_head(x).shape) == (2, 10))
 
     # --- TransferModel: resnet50 -----------------------------------------
     rn_fe = TransferModel("resnet50", 38, pretrained=False, mode="feature_extraction")
     out = rn_fe(x)
     check("resnet50 FE: output (2,38)", tuple(out.shape) == (2, 38), str(tuple(out.shape)))
-    # backbone frozen, head trainable
+    # backbone zamrznut, head trainable
     head_params = list(rn_fe._classifier_module().parameters())
     check("resnet50 FE: head is trainable", all(p.requires_grad for p in head_params))
     body_trainable = sum(
@@ -84,7 +84,7 @@ def main() -> int:
     check("resnet50 FT(2): more trainable than FE, less than all",
           rn_fe.num_trainable_params() < t_ft < rn_ft.num_total_params(),
           f"FE={rn_fe.num_trainable_params():,} FT={t_ft:,} total={rn_ft.num_total_params():,}")
-    # layer4 should be trainable, layer1 should be frozen
+    # layer4 treba da bude trainable, layer1 treba da bude zamrznut
     check("resnet50 FT(2): layer4 unfrozen",
           all(p.requires_grad for p in rn_ft.backbone.layer4.parameters()))
     check("resnet50 FT(2): layer1 frozen",
@@ -103,8 +103,8 @@ def main() -> int:
     check("factory: resnet50", isinstance(fr, TransferModel) and tuple(fr(x).shape) == (2, 38))
 
     # --- HierarchicalClassifier ------------------------------------------
-    # Mini setup: 3 species; species 0 has 4 diseases, species 1 has 2,
-    # species 2 is trivial (no head -> disease id 0).
+    # Mini postavka: 3 species; species 0 ima 4 bolesti, species 1 ima 2,
+    # species 2 je trivijalan (nema head -> disease id 0).
     species_model = BaselineCNN(num_classes=3)
     disease_models = {0: BaselineCNN(num_classes=4), 1: BaselineCNN(num_classes=2)}
     hc = HierarchicalClassifier(species_model, disease_models, num_species=3)
@@ -116,7 +116,7 @@ def main() -> int:
     check("hier: disease_id shape (8,)", tuple(pred.disease_id_in_species.shape) == (8,))
     check("hier: species ids in [0,3)",
           bool(((pred.species_id >= 0) & (pred.species_id < 3)).all()))
-    # disease ids valid for predicted species
+    # disease id-jevi validni za predviđeni species
     valid = True
     sizes = {0: 4, 1: 2, 2: 1}
     for s, d in zip(pred.species_id.tolist(), pred.disease_id_in_species.tolist()):
@@ -124,7 +124,7 @@ def main() -> int:
             valid = False
             break
     check("hier: disease id valid for predicted species", valid)
-    # trivial species always -> disease 0
+    # trivijalan species uvek -> disease 0
     trivial_mask = pred.species_id == 2
     if trivial_mask.any():
         check("hier: trivial species -> disease 0",
@@ -132,7 +132,7 @@ def main() -> int:
     else:
         report.append("[INFO] hier: no trivial-species samples in this random batch")
 
-    # --- state_dict round-trips through the container --------------------
+    # --- state_dict kruži kroz kontejner i vraća se ispravno -------------
     sd = hc.state_dict()
     check("hier: state_dict non-empty and includes heads",
           any("disease_models.0" in k for k in sd) and any("species_model" in k for k in sd))

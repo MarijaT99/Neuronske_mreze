@@ -1,4 +1,4 @@
-"""Data package: persisted splits, dataset, transforms, dataloaders."""
+"""Paket za podatke: sačuvani split-ovi, dataset, transformacije, dataloader-i."""
 
 from src.data.dataset import PlantVillageDataset
 from src.data.loaders import build_dataset, build_loader, build_loaders

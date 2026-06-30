@@ -1,8 +1,9 @@
-"""Regenerate train_kaggle.ipynb with clean UTF-8 text and git-clone delivery.
+"""Regeneriše train_kaggle.ipynb sa čistim UTF-8 tekstom i isporukom putem git-clone.
 
-Run:  python kaggle/_build_notebook.py
-Writes kaggle/train_kaggle.ipynb. Kept in-repo so the notebook is reproducible
-from source rather than hand-edited JSON (avoids encoding corruption).
+Pokretanje:  python kaggle/_build_notebook.py
+Upisuje kaggle/train_kaggle.ipynb. Drži se u repozitorijumu kako bi notebook bio
+reproducibilan iz izvornog koda umesto ručno editovanog JSON-a (izbegava se kvarenje
+enkodovanja).
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ def code(*lines: str) -> dict:
 
 
 def _join(lines):
-    """Turn a tuple of logical lines into ipynb source (newline-terminated except last)."""
+    """Pretvara tuple logičkih linija u ipynb izvor (svaka linija završena novim redom osim poslednje)."""
     text = "\n".join(lines)
     parts = text.split("\n")
     return [p + "\n" for p in parts[:-1]] + [parts[-1]]
@@ -28,33 +29,33 @@ def _join(lines):
 
 cells = [
     md(
-        "# Train on Kaggle — Hierarchical Plant Disease Classification",
+        "# Treniranje na Kaggle-u — hijerarhijska klasifikacija bolesti biljaka",
         "",
-        "Template for running the experiments on a Kaggle Notebook (T4 x2 / P100). Steps:",
+        "Šablon za pokretanje eksperimenata na Kaggle Notebook-u (T4 x2 / P100). Koraci:",
         "",
-        "1. Add the dataset `abdallahalidev/plantvillage-dataset` (we use the `color` folder).",
-        "2. Clone this repo into `/kaggle/working` (writable) so `src/` imports and the",
-        "   scripts can write checkpoints.",
-        "3. The persisted split is already in `data/splits/` — reuse it (do **not** regenerate).",
-        "4. Train the flat baselines / species head / disease heads, then evaluate the pipeline.",
+        "1. Dodaj dataset `abdallahalidev/plantvillage-dataset` (koristimo `color` folder).",
+        "2. Kloniraj ovaj repozitorijum u `/kaggle/working` (sa pravom upisa) da bi `src/` import-i i",
+        "   skripte mogle da upisuju checkpoint-e.",
+        "3. Sačuvani split je već u `data/splits/` — ponovo ga iskoristi (**nemoj** ga regenerisati).",
+        "4. Istreniraj flat baseline-e / glavu za vrstu / glave za bolest, pa evaluiraj pipeline.",
         "",
-        "> **Metrics policy:** macro F1 is the **primary** metric (the dataset is imbalanced).",
-        "> Accuracy is reported only as a secondary figure — never as the headline result.",
+        "> **Politika metrika:** macro F1 je **primarna** metrika (dataset je neuravnotežen).",
+        "> Accuracy se navodi samo kao sekundarna vrednost — nikada kao glavni rezultat.",
     ),
     md(
-        "## 0. Get the repo into the writable working dir & set up paths",
+        "## 0. Dovlačenje repozitorijuma u radni dir sa pravom upisa i podešavanje putanja",
         "",
-        "Two delivery modes, tried in order (no edits needed):",
+        "Dva načina isporuke, isprobavaju se redom (bez ikakvih izmena):",
         "",
-        "1. **Dataset mode (no Internet):** upload this repo as a Kaggle Dataset and add it as",
-        "   an Input. The cell finds it under `/kaggle/input/...` (any folder containing `src/`",
-        "   + `scripts/`) and copies it to `/kaggle/working` (so scripts can write checkpoints).",
-        "2. **Clone mode (needs Internet On):** if no repo dataset is found, `git clone` from",
-        "   GitHub. For a private repo add a Kaggle Secret `GITHUB_TOKEN` (Add-ons -> Secrets).",
+        "1. **Dataset mod (bez Interneta):** otpremi ovaj repozitorijum kao Kaggle Dataset i dodaj ga kao",
+        "   Input. Ćelija ga pronalazi pod `/kaggle/input/...` (bilo koji folder koji sadrži `src/`",
+        "   + `scripts/`) i kopira u `/kaggle/working` (da skripte mogu da upisuju checkpoint-e).",
+        "2. **Clone mod (zahteva uključen Internet):** ako nema dataset-a sa repozitorijumom, `git clone` sa",
+        "   GitHub-a. Za privatni repozitorijum dodaj Kaggle Secret `GITHUB_TOKEN` (Add-ons -> Secrets).",
         "",
-        "Kaggle's pinned image already has torch / torchvision / timm / albumentations / sklearn,",
-        "so **training works fully offline**. (`grad-cam` for Phase-6 error analysis may need",
-        "Internet — not required for training.)",
+        "Kaggle-ova zaključana slika već ima torch / torchvision / timm / albumentations / sklearn,",
+        "pa **treniranje radi potpuno offline**. (`grad-cam` za analizu grešaka u Fazi 6 može zahtevati",
+        "Internet — nije potreban za treniranje.)",
     ),
     code(
         "import sys, os, shutil, subprocess",
@@ -64,8 +65,8 @@ cells = [
         "REPO_DIR = Path('/kaggle/working/Neuronske_mreze')",
         "",
         "def find_repo_in_input():",
-        "    \"\"\"Walk /kaggle/input (depth<=4) for a folder with both src/ and scripts/.",
-        "    Skips the 'color' image tree so it stays fast.\"\"\"",
+        "    \"\"\"Prolazi kroz /kaggle/input (depth<=4) tražeći folder koji ima i src/ i scripts/.",
+        "    Preskače 'color' stablo slika da bi ostalo brzo.\"\"\"",
         "    base = Path('/kaggle/input')",
         "    if not base.exists():",
         "        return None",
@@ -94,7 +95,7 @@ cells = [
         "            if _tok and '@' not in REPO_URL:",
         "                clone_url = REPO_URL.replace('https://', f'https://{_tok}@')",
         "        except Exception:",
-        "            pass  # public repo, or no secret set",
+        "            pass  # javni repozitorijum, ili secret nije postavljen",
         "        subprocess.run(['git', 'clone', '--depth', '1', clone_url, str(REPO_DIR)], check=True)",
         "",
         "sys.path.insert(0, str(REPO_DIR))",
@@ -105,17 +106,17 @@ cells = [
         "      torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')",
     ),
     md(
-        "## 1. Locate the PlantVillage `color` images & sanity-check the split",
+        "## 1. Pronalaženje PlantVillage `color` slika i provera split-a",
         "",
-        "The exact mount path varies (Kaggle may nest it under",
-        "`/kaggle/input/datasets/<user>/<slug>/...`), so we **search** for the `color` folder",
-        "instead of hard-coding it. The train scripts read `data.data_root` as a path relative to",
-        "the repo root (`data/raw/plantvillage dataset/color`); the next cell symlinks the found",
-        "mount there so no config edits are needed.",
+        "Tačna putanja montiranja varira (Kaggle je može ugnezditi pod",
+        "`/kaggle/input/datasets/<user>/<slug>/...`), pa **tražimo** `color` folder",
+        "umesto da ga hard-kodiramo. Train skripte čitaju `data.data_root` kao putanju relativnu u odnosu na",
+        "koren repozitorijuma (`data/raw/plantvillage dataset/color`); naredna ćelija tu pravi symlink ka",
+        "pronađenom montiranom direktorijumu, tako da nisu potrebne izmene config-a.",
     ),
     code(
         "def find_color_dir():",
-        "    \"\"\"Find the PlantVillage 'color' dir under /kaggle/input (depth<=5).\"\"\"",
+        "    \"\"\"Pronalazi PlantVillage 'color' direktorijum pod /kaggle/input (depth<=5).\"\"\"",
         "    stack = [(Path('/kaggle/input'), 0)]",
         "    while stack:",
         "        d, depth = stack.pop()",
@@ -131,14 +132,14 @@ cells = [
         "assert DATA_ROOT is not None, 'PlantVillage color dir not found in /kaggle/input'",
         "print('DATA_ROOT:', DATA_ROOT)",
         "",
-        "# The persisted split is versioned in the repo; sanity-check it is present.",
+        "# Sačuvani split je verzionisan u repozitorijumu; proveri da je prisutan.",
         "from src.data.splits import load_split, LabelMaps",
         "maps = LabelMaps.from_json(REPO_DIR / 'data/splits/label_maps.json')",
         "print('species:', maps.num_species, '| classes:', maps.num_classes)",
         "print('train rows:', len(load_split(REPO_DIR / 'data/splits', 'train')))",
     ),
     md(
-        "## 2. Symlink the dataset into the path the configs expect",
+        "## 2. Pravljenje symlink-a ka dataset-u na putanji koju config-ovi očekuju",
     ),
     code(
         "target = REPO_DIR / 'data/raw/plantvillage dataset/color'",
@@ -148,18 +149,18 @@ cells = [
         "print('linked:', target, '->', os.readlink(target) if target.is_symlink() else 'N/A')",
     ),
     md(
-        "## 2b. Offline ImageNet weights for the transfer models",
+        "## 2b. Offline ImageNet težine za transfer learning modele",
         "",
-        "The from-scratch baseline needs no weights, but ResNet-50 / EfficientNet-B0 normally",
-        "download ImageNet weights from HuggingFace — which fails with no Internet. Upload the",
-        "two `.safetensors` files as a Kaggle Dataset and add it as Input; this cell locates the",
-        "folder and points `transfer.py` at it via `PDH_PRETRAINED_DIR` (so timm loads them from",
-        "disk). `HF_HUB_OFFLINE=1` skips the network-retry delays. Skip this cell if you only run",
-        "the baseline.",
+        "Baseline treniran from scratch ne zahteva težine, ali ResNet-50 / EfficientNet-B0 obično",
+        "preuzimaju ImageNet težine sa HuggingFace-a — što ne uspeva bez Interneta. Otpremi",
+        "dva `.safetensors` fajla kao Kaggle Dataset i dodaj ga kao Input; ova ćelija pronalazi",
+        "folder i usmerava `transfer.py` ka njemu preko `PDH_PRETRAINED_DIR` (da ih timm učita sa",
+        "diska). `HF_HUB_OFFLINE=1` preskače kašnjenja zbog ponovnih mrežnih pokušaja. Preskoči ovu ćeliju ako pokrećeš samo",
+        "baseline.",
     ),
     code(
         "def find_weights_dir():",
-        "    \"\"\"Find a folder containing timm *.safetensors under /kaggle/input.\"\"\"",
+        "    \"\"\"Pronalazi folder koji sadrži timm *.safetensors pod /kaggle/input.\"\"\"",
         "    stack = [(Path('/kaggle/input'), 0)]",
         "    while stack:",
         "        d, depth = stack.pop()",
@@ -181,27 +182,27 @@ cells = [
         "    print('WARNING: no *.safetensors found — transfer models will try to download (needs Internet).')",
     ),
     md(
-        "## 3. Flat baselines",
+        "## 3. Flat baseline-i",
         "",
-        "The simple CNN (from scratch) and the ResNet-50 flat reference. Each writes",
-        "`experiments/<name>/best.pth` (best by val macro F1) + `history.json` + `config.yaml`.",
+        "Jednostavna CNN (from scratch) i ResNet-50 flat referenca. Svaki upisuje",
+        "`experiments/<name>/best.pth` (najbolji po val macro F1) + `history.json` + `config.yaml`.",
     ),
     code("!python scripts/train_flat.py --config configs/baseline_cnn_flat.yaml --device cuda"),
     code("!python scripts/train_flat.py --config configs/resnet50_flat.yaml --device cuda"),
     md(
-        "## 4. Hierarchical: species head + per-species disease heads",
+        "## 4. Hijerarhijski: glava za vrstu + glave za bolest po vrsti",
     ),
     code("!python scripts/train_species.py --config configs/resnet50_hierarchical.yaml --device cuda"),
     code(
-        "# Trains the non-trivial species heads in a loop (single-class species are skipped).",
+        "# Trenira netrivijalne glave za vrstu u petlji (vrste sa jednom klasom se preskaču).",
         "!python scripts/train_disease.py --config configs/resnet50_hierarchical.yaml --device cuda",
     ),
     md(
-        "## 5. End-to-end evaluation + flat-vs-hierarchical comparison",
+        "## 5. End-to-end evaluacija + poređenje flat naspram hijerarhijskog",
         "",
-        "Reports end-to-end macro / weighted F1, balanced accuracy, **error propagation**",
-        "(what share of end-to-end errors come from a wrong species prediction), and the",
-        "flat-vs-hierarchical macro-F1 delta — the key result of the thesis.",
+        "Prikazuje end-to-end macro / weighted F1, balanced accuracy, **propagaciju grešaka**",
+        "(koliki deo end-to-end grešaka potiče od pogrešne predikcije vrste), i",
+        "razliku u macro F1 između flat i hijerarhijskog pristupa — ključni rezultat teze.",
     ),
     code(
         "!python scripts/evaluate_pipeline.py \\",
@@ -210,11 +211,11 @@ cells = [
         "    --device cuda",
     ),
     md(
-        "## 6. Download results",
+        "## 6. Preuzimanje rezultata",
         "",
-        "`experiments/<name>/` holds `best.pth`, `history.json`, `config.yaml`,",
-        "`test_metrics.json`. Zip the JSON metrics (small) to download; checkpoints are",
-        "excluded by default (remove the `-x` flag to include them).",
+        "`experiments/<name>/` sadrži `best.pth`, `history.json`, `config.yaml`,",
+        "`test_metrics.json`. Spakuj JSON metrike (male) u zip radi preuzimanja; checkpoint-i su",
+        "podrazumevano isključeni (ukloni `-x` flag da bi bili uključeni).",
     ),
     code(
         "!cd {REPO_DIR} && zip -r /kaggle/working/experiments.zip experiments -x '*.pth' \\",

@@ -1,6 +1,6 @@
-"""Shared helpers for the train_* scripts (config, weights, runtime wiring).
+"""Zajednički pomoćni alati za train_* skripte (config, težine, povezivanje pri izvršavanju).
 
-Importing this also runs _bootstrap (repo root on sys.path, CWD pinned).
+Uvoz ovoga takođe pokreće _bootstrap (repo root na sys.path, CWD fiksiran).
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ ROOT = Path(_bootstrap.ROOT)
 
 
 def resolve_path(p: str) -> Path:
-    """Resolve a config path relative to repo root unless already absolute."""
+    """Razrešava config putanju relativno u odnosu na repo root osim ako je već apsolutna."""
     path = Path(p)
     return path if path.is_absolute() else (ROOT / path)
 
@@ -49,7 +49,7 @@ def class_weights_for(
     num_classes: int,
     device: torch.device,
 ) -> torch.Tensor | None:
-    """Build class weights tensor if the loss/scheme needs them, else None."""
+    """Pravi tensor sa class weights ako ih loss/šema zahteva, inače None."""
     loss_type = cfg.imbalance.loss.get("type", "ce")
     use_weights = loss_type == "weighted_ce" or (
         loss_type == "focal" and cfg.imbalance.loss.get("use_weights", False)
@@ -69,7 +69,7 @@ def build_loss_for(cfg: Config, class_weights: torch.Tensor | None):
 
 def make_loaders_flat(cfg: Config, *, species_filter: int | None = None,
                       mode: str = "flat"):
-    """Build train/val loaders for a flat or single-head task."""
+    """Pravi train/val loader-e za flat ili single-head zadatak."""
     data = cfg.data
     data_root = resolve_path(data.data_root)
     splits_dir = resolve_path(data.splits_dir)
@@ -103,7 +103,7 @@ def experiment_out_dir(cfg: Config, *, subname: str | None = None) -> Path:
 
 
 def snapshot_config(cfg: Config, out_dir: Path) -> None:
-    """Persist the fully-resolved config next to the checkpoints (reproducibility)."""
+    """Trajno čuva potpuno razrešen config pored checkpoint-ova (reproducibilnost)."""
     save_config(cfg, out_dir / "config.yaml")
 
 

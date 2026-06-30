@@ -1,4 +1,4 @@
-"""Utility helpers: seeding and config loading."""
+"""Pomoćni alati: postavljanje seed-a i učitavanje config-a."""
 
 from src.utils.config import Config, load_config, save_config
 from src.utils.seed import make_generator, seed_everything, seed_worker

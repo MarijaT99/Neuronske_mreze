@@ -1,8 +1,8 @@
-"""YAML config loading with light schema validation and dotted access.
+"""Učitavanje YAML config-a uz laku validaciju šeme i pristup tačka-notacijom.
 
-Every experiment is driven by a YAML file (no hardcoded hyperparameters). A
-loaded config is a plain nested dict wrapped in :class:`Config`, which supports
-attribute access (``cfg.training.lr``) and ``cfg.get("training.lr", default)``.
+Svaki eksperiment je vođen YAML fajlom (bez zakucanih hiperparametara).
+Učitani config je običan ugnežđeni dict obavijen u :class:`Config`, koji podržava
+pristup preko atributa (``cfg.training.lr``) i ``cfg.get("training.lr", default)``.
 """
 
 from __future__ import annotations
@@ -14,12 +14,12 @@ import yaml
 
 
 class Config:
-    """Read-only-ish wrapper over a nested config dict with dotted access."""
+    """Uglavnom read-only omotač nad ugnežđenim config dict-om sa pristupom tačka-notacijom."""
 
     def __init__(self, data: dict[str, Any]):
         self._data = data
 
-    # ---- access -------------------------------------------------------------
+    # ---- pristup ------------------------------------------------------------
     def __getattr__(self, name: str) -> Any:
         try:
             value = self._data[name]
@@ -35,7 +35,7 @@ class Config:
         return key in self._data
 
     def get(self, dotted_key: str, default: Any = None) -> Any:
-        """Fetch a possibly-nested key like ``"training.optimizer.lr"``."""
+        """Dohvati potencijalno ugnežđeni ključ poput ``"training.optimizer.lr"``."""
         node: Any = self._data
         for part in dotted_key.split("."):
             if not isinstance(node, dict) or part not in node:
@@ -43,7 +43,7 @@ class Config:
             node = node[part]
         return Config(node) if isinstance(node, dict) else node
 
-    # ---- conversion ---------------------------------------------------------
+    # ---- konverzija ---------------------------------------------------------
     def to_dict(self) -> dict[str, Any]:
         return _deep_copy(self._data)
 
@@ -60,7 +60,7 @@ def _deep_copy(obj: Any) -> Any:
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
-    """Recursively merge ``override`` into ``base`` (override wins on leaves)."""
+    """Rekurzivno spoji ``override`` u ``base`` (override pobeđuje na listovima)."""
     out = dict(base)
     for key, val in override.items():
         if key in out and isinstance(out[key], dict) and isinstance(val, dict):
@@ -81,12 +81,12 @@ def _load_raw(path: Path) -> dict:
 
 
 def load_config(path: str | Path) -> Config:
-    """Load a YAML config, honouring an optional ``extends:`` base file.
+    """Učitaj YAML config, poštujući opcioni ``extends:`` bazni fajl.
 
-    A config may declare ``extends: <relative-path>`` (resolved relative to the
-    config's own directory). The base is loaded first (recursively) and the
-    current file is deep-merged on top, so experiment configs only specify
-    overrides. The ``extends`` key is removed from the final config.
+    Config može deklarisati ``extends: <relativna-putanja>`` (razrešena u odnosu
+    na sopstveni direktorijum config-a). Baza se prvo učitava (rekurzivno), a
+    trenutni fajl se duboko spaja preko nje, tako da config-i eksperimenata
+    navode samo override vrednosti. Ključ ``extends`` se uklanja iz finalnog config-a.
     """
     path = Path(path)
     data = _load_raw(path)
@@ -101,7 +101,7 @@ def load_config(path: str | Path) -> Config:
 
 
 def save_config(cfg: Config | dict[str, Any], path: str | Path) -> None:
-    """Persist a config (snapshot it next to every experiment's checkpoints)."""
+    """Sačuvaj config (snimi ga uz checkpoint-e svakog eksperimenta)."""
     data = cfg.to_dict() if isinstance(cfg, Config) else cfg
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

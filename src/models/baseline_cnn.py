@@ -1,15 +1,16 @@
-"""Baseline CNN trained from scratch.
+"""Baseline CNN treniran od nule (from scratch).
 
-A deliberately simple 4-block convolutional network — the "from scratch"
-reference point against which transfer-learning models are compared. Kept small
-on purpose (project rule: the baseline must be simple; no 5-6 block custom nets).
+Namerno jednostavna konvoluciona mreža sa 4 bloka — "from scratch" referentna
+tačka u odnosu na koju se porede modeli zasnovani na transfer learning-u. Namerno
+je držana malom (pravilo projekta: baseline mora biti jednostavan; bez custom
+mreža sa 5-6 blokova).
 
-Architecture: 4 conv blocks (Conv-BN-ReLU x2 + MaxPool), widths 32/64/128/256,
-then global average pooling + dropout + linear head. GAP (instead of large FC
-layers) keeps the parameter count modest and is robust to the input size.
+Arhitektura: 4 konvoluciona bloka (Conv-BN-ReLU x2 + MaxPool), širine 32/64/128/256,
+zatim global average pooling + dropout + linearni head. GAP (umesto velikih FC
+slojeva) drži broj parametara skromnim i otporan je na veličinu ulaza.
 
-Used for both the flat 38-class baseline and as a per-species disease head in the
-hierarchical baseline — just vary ``num_classes``.
+Koristi se i za flat baseline sa 38 klasa i kao disease head po species-u u
+hijerarhijskom baseline-u — dovoljno je samo promeniti ``num_classes``.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ import torch.nn as nn
 
 
 class _ConvBlock(nn.Module):
-    """Two Conv-BN-ReLU layers followed by 2x2 max pooling."""
+    """Dva Conv-BN-ReLU sloja praćena 2x2 max pooling-om."""
 
     def __init__(self, in_ch: int, out_ch: int):
         super().__init__()
@@ -38,18 +39,18 @@ class _ConvBlock(nn.Module):
 
 
 class BaselineCNN(nn.Module):
-    """4-block CNN with global average pooling and a dropout-regularized head.
+    """CNN sa 4 bloka, global average pooling-om i dropout-regularizovanim head-om.
 
     Parameters
     ----------
     num_classes:
-        Number of output logits.
+        Broj izlaznih logits-a.
     in_channels:
-        Input image channels (3 for RGB).
+        Broj kanala ulazne slike (3 za RGB).
     widths:
-        Channel widths of the 4 conv blocks.
+        Širine kanala 4 konvoluciona bloka.
     dropout:
-        Dropout probability before the final linear layer.
+        Verovatnoća dropout-a pre poslednjeg linearnog sloja.
     """
 
     def __init__(

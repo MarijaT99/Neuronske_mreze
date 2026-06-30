@@ -1,25 +1,25 @@
-# Shared defaults. Experiment configs override keys as needed.
-# Loaded first, then deep-merged with the experiment config (see utils/config).
+# Zajedničke podrazumevane vrednosti. Config-ovi eksperimenata po potrebi prepisuju ključeve.
+# Učitava se prvi, a zatim se duboko spaja sa config-om eksperimenta (videti utils/config).
 
 seed: 42
 
 data:
-  # Paths are resolved relative to the repo root by the train scripts.
-  # On Kaggle, override data_root to the dataset mount path.
+  # Putanje train skripte razrešavaju relativno u odnosu na koren repozitorijuma.
+  # Na Kaggle-u, prepiši data_root putanjom na kojoj je montiran dataset.
   data_root: "data/raw/plantvillage dataset/color"
   splits_dir: "data/splits"
   img_size: 224
   batch_size: 32
   num_workers: 4
-  aug_strength: heavy        # light | medium | heavy
+  aug_strength: heavy        # light | medium | heavy (jačina augmentation-a)
 
 imbalance:
-  # How to handle class imbalance. Exactly one of these strategies is "primary";
-  # they can be compared across experiments.
+  # Kako se rešava neuravnoteženost klasa. Tačno jedna od ovih strategija je "primarna";
+  # mogu se porediti kroz različite eksperimente.
   use_weighted_sampler: false
   loss:
     type: weighted_ce        # ce | weighted_ce | focal
-    # for focal: gamma: 2.0, use_weights: true
+    # za focal: gamma: 2.0, use_weights: true
   class_weight_scheme: inverse   # inverse | inverse_sqrt | effective
 
 training:
@@ -31,8 +31,8 @@ training:
   early_stopping_patience: 7
   grad_clip: 5.0
   amp: true
-  monitor: macro_f1          # checkpoint / early-stop metric (higher is better)
+  monitor: macro_f1          # metrika za checkpoint / early stopping (veće je bolje)
 
 experiment:
   name: _base
-  out_dir: experiments        # per-experiment subfolder created from name
+  out_dir: experiments        # podfolder po eksperimentu, kreiran na osnovu name

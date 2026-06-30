@@ -1,14 +1,15 @@
-"""Imbalance-handling samplers and class weights.
+"""Sampleri i težine klasa za rad sa neuravnoteženim podacima.
 
-The PlantVillage dataset is imbalanced at both levels (38-class ratio ~36x,
-species ratio ~49x). We support three independent strategies, comparable in
-experiments:
+PlantVillage dataset je neuravnotežen na oba nivoa (odnos za 38 klasa ~36x,
+odnos za species ~49x). Podržavamo tri nezavisne strategije, uporedive u
+eksperimentima:
 
-1. ``class_weight`` in CrossEntropyLoss   -> :func:`compute_class_weights`
-2. ``WeightedRandomSampler`` in DataLoader -> :func:`make_weighted_sampler`
-3. Focal loss                              -> see :mod:`src.training.losses`
+1. ``class_weight`` u CrossEntropyLoss     -> :func:`compute_class_weights`
+2. ``WeightedRandomSampler`` u DataLoader-u -> :func:`make_weighted_sampler`
+3. Focal loss                              -> vidi :mod:`src.training.losses`
 
-All are computed from **train-split counts only** (never val/test) to avoid leakage.
+Sve se računa **samo iz brojeva na train splitu** (nikada val/test) da bi se
+izbeglo curenje podataka.
 """
 
 from __future__ import annotations
@@ -23,21 +24,21 @@ def compute_class_weights(
     scheme: str = "inverse",
     beta: float = 0.9999,
 ) -> np.ndarray:
-    """Per-class loss weights from integer labels.
+    """Loss težine po klasi iz celobrojnih labela.
 
-    schemes:
+    sheme:
     * ``"inverse"``           — w_c ∝ 1 / count_c
-    * ``"inverse_sqrt"``      — w_c ∝ 1 / sqrt(count_c) (gentler)
+    * ``"inverse_sqrt"``      — w_c ∝ 1 / sqrt(count_c) (blaže)
     * ``"effective"``         — class-balanced (Cui et al. 2019): (1-beta)/(1-beta^n_c)
 
-    Weights are normalized to mean 1 so the loss scale stays comparable.
-    Returns a float array of length ``num_classes``.
+    Težine se normalizuju na srednju vrednost 1 kako bi skala loss-a ostala uporediva.
+    Vraća float niz dužine ``num_classes``.
     """
     labels = np.asarray(labels)
     if num_classes is None:
         num_classes = int(labels.max()) + 1
     counts = np.bincount(labels, minlength=num_classes).astype(np.float64)
-    counts = np.maximum(counts, 1.0)  # guard against empty classes
+    counts = np.maximum(counts, 1.0)  # zaštita od praznih klasa
 
     if scheme == "inverse":
         w = 1.0 / counts
@@ -49,16 +50,16 @@ def compute_class_weights(
     else:
         raise ValueError(f"Unknown scheme {scheme!r} (inverse|inverse_sqrt|effective).")
 
-    w = w / w.mean()  # normalize to mean 1
+    w = w / w.mean()  # normalizuj na srednju vrednost 1
     return w.astype(np.float32)
 
 
 def make_weighted_sampler(labels: np.ndarray, num_classes: int | None = None):
-    """Build a ``WeightedRandomSampler`` that draws classes ~uniformly.
+    """Napravi ``WeightedRandomSampler`` koji bira klase približno uniformno.
 
-    Each sample's weight is 1/count_of_its_class, so on average each class is
-    equally represented per epoch. ``num_samples`` is set to ``len(labels)`` so
-    an "epoch" keeps its usual size.
+    Težina svakog uzorka je 1/count_njegove_klase, pa je u proseku svaka klasa
+    podjednako zastupljena po epoch-u. ``num_samples`` se postavlja na
+    ``len(labels)`` tako da "epoch" zadrži uobičajenu veličinu.
     """
     import torch
     from torch.utils.data import WeightedRandomSampler

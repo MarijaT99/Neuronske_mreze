@@ -1,14 +1,14 @@
-"""Model factory — build any model from a config-style spec.
+"""Model factory — gradi bilo koji model iz config-spec-a.
 
-Keeps construction config-driven (project rule: no hardcoded model choices).
-A model spec is a dict like::
+Konstrukcija ostaje config-driven (pravilo projekta: bez hardkodovanih izbora
+modela). Model spec je dict poput::
 
     {"type": "baseline_cnn", "dropout": 0.5}
     {"type": "resnet50", "mode": "finetune", "unfreeze_blocks": 2, "pretrained": true}
     {"type": "efficientnet_b0", "mode": "feature_extraction"}
 
-``num_classes`` is supplied separately (it depends on the task: 38 for the flat
-baseline, num_species for the species head, k for a per-species disease head).
+``num_classes`` se prosleđuje zasebno (zavisi od zadatka: 38 za flat baseline,
+num_species za species head, k za disease head po species-u).
 """
 
 from __future__ import annotations
@@ -23,8 +23,8 @@ BASELINE_TYPES = {"baseline_cnn", "cnn", "baseline"}
 
 
 def build_model(spec: dict, num_classes: int) -> nn.Module:
-    """Instantiate a model from a spec dict and a class count."""
-    spec = dict(spec)  # shallow copy; we pop 'type'
+    """Instancira model na osnovu spec dict-a i broja klasa."""
+    spec = dict(spec)  # plitka kopija; izvlačimo (pop) 'type'
     model_type = spec.pop("type", None)
     if model_type is None:
         raise ValueError("Model spec must include a 'type' key.")

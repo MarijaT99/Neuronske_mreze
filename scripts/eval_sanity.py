@@ -1,15 +1,15 @@
-"""Sanity check for config inheritance + hierarchical evaluation.
+"""Sanity check za nasleđivanje config-a + hijerarhijsku evaluaciju.
 
-Offline, no data. Verifies:
-* load_config resolves `extends:` and deep-merges (experiment overrides win,
-  base keys survive);
-* all shipped configs load and expose required keys;
-* evaluate_hierarchical: perfect predictions -> macro F1 1.0 at every level;
-* error propagation accounting: a species error forces an end-to-end error and is
-  attributed to species, not disease;
-* global-id mapping round-trips (species, disease-in-species) -> 38-class id.
+Offline, bez podataka. Proverava:
+* load_config razrešava `extends:` i radi dubinsko spajanje (override-i eksperimenta
+  pobeđuju, bazni ključevi opstaju);
+* svi isporučeni config-i se učitavaju i izlažu obavezne ključeve;
+* evaluate_hierarchical: savršena predviđanja -> macro F1 1.0 na svakom nivou;
+* obračun error propagation-a: greška u species iznuđuje end-to-end grešku i
+  pripisuje se species-u, a ne bolesti;
+* mapiranje globalnih id-jeva kruži i vraća se (species, disease-in-species) -> 38-klasni id.
 
-Writes a report to $TEMP; exits non-zero on failure.
+Upisuje izveštaj u $TEMP; izlazi sa kodom različitim od nule pri padu.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ def check(name: str, cond: bool, detail: str = "") -> None:
 
 
 def main() -> int:
-    # --- config inheritance ----------------------------------------------
+    # --- nasleđivanje config-a -------------------------------------------
     cfg = load_config(ROOT / "configs" / "resnet50_flat.yaml")
     check("config: extends merged base (seed present)", cfg.get("seed") == 42)
     check("config: override wins (epochs=25 not base 30)", cfg.training.epochs == 25,
@@ -65,19 +65,19 @@ def main() -> int:
         ok = c.experiment.name == name and "training" in c and "imbalance" in c
         check(f"config: {name} loads with required keys", ok)
 
-    # --- label maps for the eval (load the real persisted maps) ----------
+    # --- label mape za evaluaciju (učitaj stvarne sačuvane mape) ---------
     maps = LabelMaps.from_json(ROOT / "data" / "splits" / "label_maps.json")
     check("maps: 14 species, 38 classes", maps.num_species == 14 and maps.num_classes == 38)
 
-    # --- hierarchical eval: perfect predictions --------------------------
-    # Build a small aligned sample directly from the real label structure.
+    # --- hijerarhijska evaluacija: savršena predviđanja ------------------
+    # Napravi mali poravnati uzorak direktno iz stvarne strukture label-a.
     rng = np.random.default_rng(0)
-    rows = []  # (species_id, disease_in_species)
+    rows = []  # (species_id, disease_in_species) — bolest u okviru species-a
     for sid in range(maps.num_species):
         k = maps.num_diseases_for(sid)
         for d in range(k):
             rows.append((sid, d))
-    rows = rows * 3  # repeat so metrics are stable
+    rows = rows * 3  # ponovi da bi metrike bile stabilne
     arr = np.array(rows)
     true_s, true_d = arr[:, 0], arr[:, 1]
 
@@ -92,12 +92,12 @@ def main() -> int:
     check("hier-eval: perfect -> 0 errors",
           perfect.errors_from_species == 0 and perfect.errors_from_disease_only == 0)
 
-    # --- error propagation: corrupt species on some samples --------------
+    # --- error propagation: pokvari species na nekim uzorcima ------------
     pred_s = true_s.copy()
     pred_d = true_d.copy()
-    # Flip species for 20% of samples to a different species; disease stays as
-    # predicted by the (wrong) head — simulate by keeping pred_d but it now
-    # belongs to the wrong species. Those should count as species-caused errors.
+    # Promeni species za 20% uzoraka u drugi species; bolest ostaje onakva kakvu
+    # je predvideo (pogrešan) head — simuliramo time što zadržavamo pred_d, ali on
+    # sada pripada pogrešnom species-u. To treba da se broji kao greška uzrokovana species-om.
     n = len(true_s)
     flip_idx = rng.choice(n, size=n // 5, replace=False)
     for i in flip_idx:
@@ -120,10 +120,10 @@ def main() -> int:
     check("hier-eval: all errors attributed to species (share=1.0)",
           abs(share - 1.0) < 1e-9, f"share={share:.3f}")
 
-    # --- disease-only error: right species, wrong disease ----------------
+    # --- greška samo u bolesti: tačan species, pogrešna bolest -----------
     pred_s2 = true_s.copy()
     pred_d2 = true_d.copy()
-    # Find a Tomato sample (k=10) and corrupt its disease only.
+    # Pronađi Tomato uzorak (k=10) i pokvari samo njegovu bolest.
     tomato = maps.species_to_id["Tomato"]
     tmask = np.where(true_s == tomato)[0]
     corrupt = tmask[:5]
