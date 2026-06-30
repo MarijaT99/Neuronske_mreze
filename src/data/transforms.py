@@ -2,13 +2,13 @@
 
 Dva pipeline-a:
 
-* ``build_train_transforms`` — **jak** augmentation. To je namerno: poznati
+* ``build_train_transforms`` - **jak** augmentation. To je namerno: poznati
   način otkazivanja kod PlantVillage-a je da se modeli zakače za skoro uniforman
   per-class background umesto za leziju. Agresivan color jitter, random
   erasing (CoarseDropout), perspective/affine deformacije i flip-ovi teraju model
   da se oslanja na teksturu lista/lezije pre nego na background tragove. Ovo je naša
   glavna mera protiv background bias ograničenja (uz Grad-CAM analizu).
-* ``build_eval_transforms`` — **minimalan**: samo resize + normalize. Nikada nema
+* ``build_eval_transforms`` - **minimalan**: samo resize + normalize. Nikada nema
   augmentation-a na val/test-u.
 
 Normalizacija podrazumevano koristi ImageNet statistiku (koristimo ImageNet
@@ -65,7 +65,7 @@ def build_train_transforms(
     if aug_strength == "heavy":
         geometric.append(A.Perspective(scale=(0.05, 0.1), p=0.3))
 
-    # Boja/osvetljenje — najdirektnije napada trag uniformnog background-a.
+    # Boja/osvetljenje - najdirektnije napada trag uniformnog background-a.
     cj_strength = {"light": 0.1, "medium": 0.2, "heavy": 0.3}[aug_strength]
     photometric: list = [
         A.ColorJitter(
@@ -91,7 +91,7 @@ def build_train_transforms(
 
     occlusion: list = []
     if aug_strength in {"medium", "heavy"}:
-        # Random erasing — prisiljava korišćenje više regiona lista, ne jednog dela.
+        # Random erasing - prisiljava korišćenje više regiona lista, ne jednog dela.
         max_holes = 8 if aug_strength == "heavy" else 4
         hole_frac = 0.15 if aug_strength == "heavy" else 0.1
         occlusion.append(
@@ -121,7 +121,7 @@ def build_eval_transforms(
     std: tuple[float, float, float] = IMAGENET_STD,
 ) -> A.Compose:
     """Pipeline za validaciju/test: samo deterministički resize + normalize."""
-    # Resize na malo veću dimenziju pa center-crop — standardna ImageNet eval procedura.
+    # Resize na malo veću dimenziju pa center-crop - standardna ImageNet eval procedura.
     resize = int(round(img_size * 1.14))
     return A.Compose(
         [
