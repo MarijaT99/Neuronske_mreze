@@ -98,3 +98,4 @@ hijerarhije potiče od pogrešno prepoznate vrste. Detaljni rezultati, tabele i 
 
 Finalna verzija rada je `Report.pdf`. Izvorni kod (LaTeX, IEEE šablon, na srpskom) je u
 `paper/main.tex`, a figure u `paper/figures/`. Rad se kompajlira sa `pdfLaTeX` (dva prolaza).
+
